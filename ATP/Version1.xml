@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<project Application="ATPDraw" Version="7" VersionXML="1">
+   <header Timestep2="1E-6" Tmax="0.001" XOPT="0" COPT="0" TopLeftX="4728" TopLeftY="4804"/>
+   <objects>
+      <comp Name="RESISTOR">
+         <comp_content Angle="270" PosX="490" PosY="280" Output="1" Icon="default">
+            <node Name="From" Value="Nombre 1R" UserNamed="true" Kind="1" PosX="-20" PosY="0" NamePosX="-4" NamePosY="0"/>
+            <node Name="To" Value="      " UserNamed="true" Kind="1" PosX="20" PosY="0" NamePosX="4" NamePosY="0" Ground="1"/>
+            <data Name="" Value="20"/>
+         </comp_content>
+      </comp>
+      <comp Name="PROBE_I">
+         <comp_content PosX="510" PosY="260" Icon="default">
+            <node Name="IN" Value="4R" UserNamed="true" Kind="1" PosX="-20" PosY="0" NamePosX="-4" NamePosY="0"/>
+            <node Name="OUT" Value="XX0004" UserNamed="true" Kind="1" PosX="20" PosY="0" NamePosX="4" NamePosY="0"/>
+            <node Name="CURR" Value="" Disabled="true" Kind="1" PosX="0" PosY="-10" NamePosX="0" NamePosY="-4"/>
+            <data Name="" Value="1"/>
+            <data Name="" Value="50"/>
+            <data Name="" Value="0"/>
+         </comp_content>
+         <probe CaptureSteadyState="false" OnScreen="0" ScreenFormat="0" ScreenShow="0" CurrNode="false" FontSize="0" Precision="0" TimeOnScreen="false">
+            <monitor Phase="1"/>
+         </probe>
+      </comp>
+      <comp Name="LCC" Id="1">
+         <comp_content PosX="420" PosY="200" NumPhases="8" Icon="default">
+            <node Name="IN1-3" Value="1A" UserNamed="true" NumPhases="3" Kind="1" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <node Name="IN4-6" Value="1B" UserNamed="true" NumPhases="3" Kind="1" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <node Name="IN7" Value="" UserNamed="false" Kind="2" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <node Name="IN8" Value="" UserNamed="false" Kind="2" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <node Name="OUT1-3" Value="2A" UserNamed="true" NumPhases="3" Kind="1" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <node Name="OUT4-6" Value="2B" UserNamed="true" NumPhases="3" Kind="1" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <node Name="OUT7" Value="" UserNamed="false" Kind="2" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <node Name="OUT8" Value="" UserNamed="false" Kind="2" PosX="-20" PosY="-10" NamePosX="-4" NamePosY="-4"/>
+            <data Name="Length" Value="0.55"/>
+            <data Name="Frequency" Value="60"/>
+            <data Name="Grnd resist" Value="100"/>
+         </comp_content>
+         <LCC NumPhases="8" LineCablePipe="1" ModelType="1">
+            <line_header RealMtrx="false" SkinEffect="true" AutoBundle="true" MetricUnit="true">
+               <line PhNo="1" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+               <line PhNo="2" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+               <line PhNo="3" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+               <line PhNo="4" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+               <line PhNo="5" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+               <line PhNo="6" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+               <line PhNo="7" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+               <line PhNo="8" Rin="0" Rout="10.0" React="0" Resis="30" Horiz="20" Vtow="10" Vmid="2" NB="5" Separ="0.5" Alpha="45"/>
+            </line_header>
+         </LCC>
+      </comp>
+   </objects>
+   <variables NumSim="1" IOPCVP="0"/>
+</project>
