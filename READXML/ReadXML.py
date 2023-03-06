@@ -4,9 +4,9 @@ import pandas as pd
 
 class ReadXML:
     """
-    Esta Función se encarga de extraer los datos en un diccionadrio de diccionarios
+    Esta Función se encarga de extraer los datos en un diccionario de diccionarios
     en donde por cada tabla hay un diccionario que tiene como valores otro diccionario
-    con los aributos corresondientes
+    con los atributos correspondientes
     """
 
     def __init__(self, file):
@@ -59,16 +59,18 @@ class ReadXML:
 data = ReadXML('SM_1x220kV_LasDamas_Portezuelos.xml')
 Summary = data.Dicc_Final
 Tables = data.List_Table
-# writer = pd.ExcelWriter('Prueba.xlsx')
+
+
+writer = pd.ExcelWriter('Prueba.xlsx')
 
 # Structure_List_Report = data.Structure_List_Report
 # Cable_Material_List_Report = data.Cable_Material_List_Report
 
-# for table in Tables:
+for table in Tables:
 
-#     Data_Frame = data.ExtracData(table)
-#     Data_Frame.to_excel(writer, table, index=False)
+    Data_Frame = data.ExtracData(table)
+    Data_Frame.to_excel(writer, table, index=False)
 # Structure_List_Report.to_excel(writer, "Structure_List_Report", index=False)
 # Cable_Material_List_Report.to_excel(writer, "Cable_Material_List_Report", index=False)
-# writer.save()
-# writer.close()
+writer.save()
+writer.close()
