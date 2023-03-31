@@ -152,7 +152,11 @@ class Tower(object):
             )
 
         circuit_name = {"0": "A", "1": "B"}
+        DeltaY = -10
+        Kind = 1
+
         for i in range(circuits):
+
             comp_content.append(
                 ET.Element(
                     "node",
@@ -161,16 +165,19 @@ class Tower(object):
                         "Value": str(data["Nombre"]) + circuit_name[str(i)],
                         "UserNamed": "true",
                         "NumPhases": "3",
-                        "Kind": "1",
+                        "Kind": str(Kind),
                         "PosX": "-20",
-                        "PosY": "-10",
+                        "PosY": str(DeltaY),
                         "NamePosX": "-4",
                         "NamePosY": "-4",
                     },
                 )
-        )
+            )
+            DeltaY += 10
+            Kind += 1
 
         phNumber = circuits*3 + 1
+        DeltaY = 10
 
         for i in range(ground):
 
@@ -181,17 +188,20 @@ class Tower(object):
                     "Name": "IN{}".format(phNumber + i),
                     "Value": "",
                     "UserNamed": "false",
-                    "Kind": "2",
+                    "Kind": str(Kind),
                     "PosX": "-20",
-                    "PosY": "-10",
+                    "PosY": str(DeltaY),
                     "NamePosX": "-4",
                     "NamePosY": "-4",
-                },
+                    },
+                )
             )
-        )
-
+            DeltaY += 10
+            Kind += 1
 
         phNumber += 1
+        DeltaY = -10
+        Kind = 1
 
         for i in range(circuits):
             comp_content.append(
@@ -202,16 +212,19 @@ class Tower(object):
                     "Value": nextrow + circuit_name[str(i)],
                     "UserNamed": "true",
                     "NumPhases": "3",
-                    "Kind": "1",
+                    "Kind": str(Kind),
                     "PosX": "-20",
-                    "PosY": "-10",
+                    "PosY": str(DeltaY),
                     "NamePosX": "-4",
                     "NamePosY": "-4",
                 },
             )
-        )
+            )
+            DeltaY += 10
+            Kind += 1
             
         phNumber = circuits*3 + 1
+        DeltaY = 10
 
         for i in range(ground):
             comp_content.append(
@@ -223,15 +236,14 @@ class Tower(object):
                     "UserNamed": "false",
                     "Kind": "2",
                     "PosX": "-20",
-                    "PosY": "-10",
+                    "PosY": str(DeltaY),
                     "NamePosX": "-4",
                     "NamePosY": "-4",
                 },
             )
-        )
-
-
-        
+            )
+            DeltaY += 10
+            Kind += 1
 
         comp_content.append(
                 ET.Element(
@@ -273,8 +285,8 @@ class Tower(object):
                     "PhNo":str(i+1),
                     "Rin":str(0),
                     "Rout":str(cable["Diametro"] / 2),
-                    "React":str(0),
                     "Resis":str(cable["Resistencia DC"]),
+                    "React":str(cable["Reactancia"]),
                     "Horiz":str(geometry["Horiz"]),
                     "Vtow":str(geometry["Vtow"]),
                     "Vmid":str(geometry["Vmid"]),
