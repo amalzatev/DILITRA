@@ -17,7 +17,9 @@ class Header(object):
         ),
         
 class Resistor(object):
-    def __init__(self, posx, posy, row):
+    def __init__(self,index, row):
+        posx = 140 + (100 + index * 120) % 2400
+        posy = 180 + 300 * (1 + index // 20)
         self.auxET = ET.Element(
             "comp_content",
             attrib={
@@ -63,16 +65,16 @@ class Resistor(object):
         self.ET.append(self.auxET)
 
 class Probe(object):
-    def __init__(self, input, output, x, y):
+    def __init__(self, ang, input, output, x, y):
         self.comp_content = ET.Element(
-            "comp_content", attrib={"PosX": str(x), "PosY": str(y), "Icon": "default"}
+            "comp_content", attrib={"Angle": str(ang), "PosX": str(x), "PosY": str(y), "Icon": "default"}
         )
         self.comp_content.append(
             ET.Element(
                 "node",
                 attrib={
                     "Name": "IN",
-                    "Value": input,
+                    "Value": str(input),
                     "UserNamed": "true",
                     "Kind": "1",
                     "PosX": "-20",
@@ -87,7 +89,7 @@ class Probe(object):
                 "node",
                 attrib={
                     "Name": "OUT",
-                    "Value": output,
+                    "Value": str(output),
                     "UserNamed": "true",
                     "Kind": "1",
                     "PosX": "20",
@@ -135,11 +137,12 @@ class Probe(object):
         self.ET.append(self.probe)
 
 class Tower(object):
+
     def __init__(self, index, geometry, data, cable, nextrow):
         circuits = data["Circuitos"]
         ground = data["Ground"]
         posx = 200 + (100 + index * 120) % 2400
-        posy = 100 + 100 * (1 + index // 20)
+        posy = 100 + 300* (1 + index // 20)
 
 
         comp_content = ET.Element("comp_content",
@@ -279,6 +282,7 @@ class Tower(object):
             )
 
         for i in range(phNumber+1):
+            geometryFase = geometry["Fase" + str(i+1)]
             line_header.append(
                 ET.Element("line",
                     attrib={
@@ -287,10 +291,10 @@ class Tower(object):
                     "Rout":str(cable["Diametro"] / 2),
                     "Resis":str(cable["Resistencia DC"]),
                     "React":str(cable["Reactancia"]),
-                    "Horiz":str(geometry["Horiz"]),
-                    "Vtow":str(geometry["Vtow"]),
-                    "Vmid":str(geometry["Vmid"]),
-                    "NB":str(geometry["NB"]),
+                    "Horiz":str(geometryFase[0]),
+                    "Vtow":str(geometryFase[1]),
+                    "Vmid":str(geometryFase[2]),
+                    "NB":str(geometryFase[3]),
                     "Separ":str(data["Separacion conductores"]),
                     "Alpha":str(data["Angulo"]),
                     },
@@ -303,3 +307,9 @@ class Tower(object):
 
         self.ET.append(comp_content)
         self.ET.append(Comp_LCC)
+
+class Conn(object):
+
+    def __init__(self,NumPhases,X1,Y1,X2,Y2):
+        self.ET = ET.Element("conn")
+        ET.SubElement(self.ET,"conn_content", attrib={"NumPhases":str(NumPhases), "Pos1X":str(X1), "Pos1Y":str(Y1), "Pos2X":str(X2), "Pos2Y":str(Y2)})
