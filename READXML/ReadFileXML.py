@@ -65,8 +65,8 @@ class ReadXML:
 #########################################################################################################
 
 
-data = ReadXML('PLC/SM_1x220kV_LasDamas_Portezuelos.xml')
-print(data.list_Level1)
+# data = ReadXML('PLC/SM_1x220kV_LasDamas_Portezuelos.xml')
+# print(data.list_Level1)
 # Summary = data.Dicc_Final
 # Tables = data.List_Table
 
