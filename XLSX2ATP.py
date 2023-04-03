@@ -165,7 +165,7 @@ class Tower(object):
                     "node",
                     attrib={
                         "Name": "IN{}-{}".format(3 * i + 1, 3 * (i + 1)),
-                        "Value": str(data["Nombre"]) + circuit_name[str(i)],
+                        "Value": str(data["Nombre"]) + circuit_name[str(i)] + str(1),
                         "UserNamed": "true",
                         "NumPhases": "3",
                         "Kind": str(Kind),
@@ -179,6 +179,7 @@ class Tower(object):
             DeltaY += 10
             Kind += 1
 
+        circuit_Ground = {"0": "GP", "1": "GS"}
         phNumber = circuits*3 + 1
         DeltaY = 10
 
@@ -189,7 +190,7 @@ class Tower(object):
                 "node",
                 attrib={
                     "Name": "IN{}".format(phNumber + i),
-                    "Value": "",
+                    "Value": str(data["Nombre"]) + circuit_Ground[str(i)] + str(1),
                     "UserNamed": "false",
                     "Kind": str(Kind),
                     "PosX": "-20",
@@ -212,7 +213,7 @@ class Tower(object):
                 "node",
                 attrib={
                     "Name": "OUT{}-{}".format(3 * i + 1, 3 * (i + 1)),
-                    "Value": nextrow + circuit_name[str(i)],
+                    "Value": str(data["Nombre"]) + circuit_name[str(i)] + str(2),
                     "UserNamed": "true",
                     "NumPhases": "3",
                     "Kind": str(Kind),
@@ -235,7 +236,7 @@ class Tower(object):
                 "node",
                 attrib={
                     "Name": "OUT{}".format(phNumber + i),
-                    "Value": "",
+                    "Value": str(data["Nombre"]) + circuit_Ground[str(i)] + str(2),
                     "UserNamed": "false",
                     "Kind": "2",
                     "PosX": "-20",
@@ -303,7 +304,7 @@ class Tower(object):
 
 
 
-        self.ET = ET.Element("comp", attrib={"Name":"LCC", "Id": "1"})
+        self.ET = ET.Element("comp", attrib={"Name":"LCC", "Id": str(index+1)})
 
         self.ET.append(comp_content)
         self.ET.append(Comp_LCC)

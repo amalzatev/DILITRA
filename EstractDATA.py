@@ -62,6 +62,17 @@ for i in range(len(St_Coordinates)):
 
 Data_Frame = pd.DataFrame(Geometry)
 
+
+
+
+
+
+
+
+
+
+
+
 ########################################################################
 ##                  Crear XML despues de obtener los datos            ##
 ########################################################################
@@ -91,14 +102,6 @@ data_RPT = {"Nombre":list(St_Coordinates["struct_number"]),"RPT": 0.5,
 
 Level_object = ET.Element("objects",{})
 
-for Torre in range(len(data_RPT["Nombre"])):
-
-    dic1 = XLSX2ATP.Resistor(Torre,R.iloc[0])
-    Level_object.append(dic1.ET)
-
-
-atp.xmlProject.append(Level_object)
-
 #############################################################
 #                     Datos Para LCC                       ##
 #############################################################
@@ -126,13 +129,6 @@ General_Data = {"Longitud": 0.55, "Resistividad":100,
 cable = {"Diametro": 1.265*2, "Resistencia DC": 0.0833, "Reactancia":0.5169}
 nextrow = "2"
 
-for Torre in range(len(data_RPT["Nombre"])):
-
-    LCC1 = XLSX2ATP.Tower(Torre,geometry,General_Data,cable,nextrow)
-    Level_object.append(LCC1.ET)
-
-atp.xmlProject.append(Level_object)
-
 #############################################################
 #                     Agregar conectores                   ##
 #############################################################
@@ -140,9 +136,16 @@ atp.xmlProject.append(Level_object)
 
 
 for Torre in range(len(data_RPT["Nombre"])):
+
+    dic1 = XLSX2ATP.Resistor(Torre,R.iloc[0])
+    Level_object.append(dic1.ET)
+
+    LCC1 = XLSX2ATP.Tower(Torre,geometry,General_Data,cable,nextrow)
+    Level_object.append(LCC1.ET)
+
     y = 0
     for i in range(2):
-        
+        # numero de circuitos para este caso se asumen dos circuitos
         posx1 = 220 + (100 + Torre * 120) % 2400
         posy1 = 90 + 300 * (1 + Torre // 20) + y
         posx2 = posx1 +  80
@@ -153,15 +156,13 @@ for Torre in range(len(data_RPT["Nombre"])):
 
     y = 0
     for i in range(2):
-        
+        # numero de cables de guardia para este caso se asumen dos circuitos
         posx1 = 220 + (100 + Torre * 120) % 2400
         posy1 = 110 + 300 * (1 + Torre // 20) + y
         posx2 = posx1 +  10
         posy2 = posy1
         y = 10
-        # CONN = XLSX2ATP.Conn(1,posx1,posy1,posx2,posy2)
-        # Level_object.append(CONN.ET)
-    
+
         Probe = XLSX2ATP.Probe(0,Torre,Torre+1,posx1+20,posy1)
         Level_object.append(Probe.ET)
 
@@ -173,9 +174,6 @@ for Torre in range(len(data_RPT["Nombre"])):
     posy1 = 110 + 300 * (1 + Torre // 20) + y
     posx2 = posx1 +  10
     posy2 = posy1
-    y = 10
-    # CONN = XLSX2ATP.Conn(1,posx1,posy1,posx2,posy2)
-    # Level_object.append(CONN.ET)
 
     Probe = XLSX2ATP.Probe(270,Torre,Torre+1,posx1-80,posy1+20)
     Level_object.append(Probe.ET)
