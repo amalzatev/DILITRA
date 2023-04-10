@@ -17,9 +17,19 @@ class Header(object):
         ),
         
 class Resistor(object):
-    def __init__(self,index, row):
-        posx = 140 + (100 + index * 120) % 2400
-        posy = 180 + 300 * (1 + index // 20)
+    def __init__(self,index, row, posx, posy):
+        """
+
+        Esta clase crea el componente para las resistencias de puesta a tierra, en donde se debe indicar:
+
+            -->index = Numero de elemento o torre que se va a crear.
+            -->row = Resistencias de puesta a tierra correspondiente a cada torre.
+            -->posx = posicion de la resistencia en x en ATP.
+            -->posy = posicion de la resistencia en y en ATP.
+
+        """
+
+
         self.auxET = ET.Element(
             "comp_content",
             attrib={
@@ -35,7 +45,7 @@ class Resistor(object):
             "node",
             {
                 "Name": "From",
-                "Value": str(row["Nombre"]) + "R",
+                "Value": str(index+1) + "RPT",
                 "UserNamed": "true",
                 "Kind": "1",
                 "PosX": "-20",
@@ -65,9 +75,22 @@ class Resistor(object):
         self.ET.append(self.auxET)
 
 class Probe(object):
-    def __init__(self, ang, input, output, x, y):
+    """
+    
+    Esta es una clase para crear los probadores de corriente.
+
+        -->ang = Angulo del elemento en ATP.
+        -->input = Cual es el nombre que se se colocara al punto de entrada del elemento.
+        -->output = Cual es el nombre que se se colocara al punto de salida del elemento.
+        -->posx = posicion del elemento en x en ATP.
+        -->posy = posicion del elemento en y en ATP.
+    
+    Nota:  no se hace el numbramiento de los nodos desde acá, ya que cada caso de conexión es particular.
+
+    """
+    def __init__(self, ang, input, output, posx, posy):
         self.comp_content = ET.Element(
-            "comp_content", attrib={"Angle": str(ang), "PosX": str(x), "PosY": str(y), "Icon": "default"}
+            "comp_content", attrib={"Angle": str(ang), "PosX": str(posx), "PosY": str(posy), "Icon": "default"}
         )
         self.comp_content.append(
             ET.Element(
@@ -138,12 +161,22 @@ class Probe(object):
 
 class Tower(object):
 
-    def __init__(self, index, geometry, data, cable, nextrow):
+    """
+    
+    Esta es una clase para crear los probadores de corriente.
+
+        -->index = Numero de elemento o torre que se va a crear.
+        -->geometry = Geometria de cada torre.
+        -->data = Datos generales del alineamiento.
+        -->cable = Información de los conductores utilizados.
+        -->posx = posicion del elemento en x en ATP.
+        -->posy = posicion del elemento en y en ATP.
+    
+    """
+
+    def __init__(self, index, geometry, data, cable, posx, posy):
         circuits = data["Circuitos"]
         ground = data["Ground"]
-        posx = 200 + (100 + index * 120) % 2400
-        posy = 100 + 300* (1 + index // 20)
-
 
         comp_content = ET.Element("comp_content",
             attrib={
@@ -165,7 +198,7 @@ class Tower(object):
                     "node",
                     attrib={
                         "Name": "IN{}-{}".format(3 * i + 1, 3 * (i + 1)),
-                        "Value": str(data["Nombre"]) + circuit_name[str(i)] + str(1),
+                        "Value": str(index+1) + circuit_name[str(i)] + str(1),
                         "UserNamed": "true",
                         "NumPhases": "3",
                         "Kind": str(Kind),
@@ -179,7 +212,7 @@ class Tower(object):
             DeltaY += 10
             Kind += 1
 
-        circuit_Ground = {"0": "GP", "1": "GS"}
+        circuit_Ground = {"0": "G1-", "1": "G2-"}
         phNumber = circuits*3 + 1
         DeltaY = 10
 
@@ -190,7 +223,7 @@ class Tower(object):
                 "node",
                 attrib={
                     "Name": "IN{}".format(phNumber + i),
-                    "Value": str(data["Nombre"]) + circuit_Ground[str(i)] + str(1),
+                    "Value": str(index+1)+ circuit_Ground[str(i)] + str(1),
                     "UserNamed": "false",
                     "Kind": str(Kind),
                     "PosX": "-20",
@@ -213,7 +246,7 @@ class Tower(object):
                 "node",
                 attrib={
                     "Name": "OUT{}-{}".format(3 * i + 1, 3 * (i + 1)),
-                    "Value": str(data["Nombre"]) + circuit_name[str(i)] + str(2),
+                    "Value": str(index+1)+ circuit_name[str(i)] + str(2),
                     "UserNamed": "true",
                     "NumPhases": "3",
                     "Kind": str(Kind),
@@ -236,7 +269,7 @@ class Tower(object):
                 "node",
                 attrib={
                     "Name": "OUT{}".format(phNumber + i),
-                    "Value": str(data["Nombre"]) + circuit_Ground[str(i)] + str(2),
+                    "Value": str(index+1) + circuit_Ground[str(i)] + str(2),
                     "UserNamed": "false",
                     "Kind": "2",
                     "PosX": "-20",
@@ -311,6 +344,6 @@ class Tower(object):
 
 class Conn(object):
 
-    def __init__(self,NumPhases,X1,Y1,X2,Y2):
+    def __init__(self,NumPhases,posx1,posy1,posx2,posy2):
         self.ET = ET.Element("conn")
-        ET.SubElement(self.ET,"conn_content", attrib={"NumPhases":str(NumPhases), "Pos1X":str(X1), "Pos1Y":str(Y1), "Pos2X":str(X2), "Pos2Y":str(Y2)})
+        ET.SubElement(self.ET,"conn_content", attrib={"NumPhases":str(NumPhases), "Pos1X":str(posx1), "Pos1Y":str(posy1), "Pos2X":str(posx2), "Pos2Y":str(posy2)})

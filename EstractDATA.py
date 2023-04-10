@@ -130,21 +130,31 @@ cable = {"Diametro": 1.265*2, "Resistencia DC": 0.0833, "Reactancia":0.5169}
 nextrow = "2"
 
 #############################################################
-#                     Agregar conectores                   ##
+#             Creacion de elementos multiples              ##
 #############################################################
 
 
 
 for Torre in range(len(data_RPT["Nombre"])):
 
-    dic1 = XLSX2ATP.Resistor(Torre,R.iloc[0])
+    # se agregan las resistencias para cada una de las torres, en este punto se pueden tambien cambair las RPT
+    posx = 140 + (100 + Torre * 120) % 2400
+    posy = 180 + 300 * (1 + Torre // 20)
+    dic1 = XLSX2ATP.Resistor(Torre,R.iloc[0], posx, posy)
     Level_object.append(dic1.ET)
 
-    LCC1 = XLSX2ATP.Tower(Torre,geometry,General_Data,cable,nextrow)
+
+    # Se agregan los LCC solo para un caso ejemplo
+    posx = 200 + (100 + Torre * 120) % 2400
+    posy = 100 + 300* (1 + Torre// 20)
+    LCC1 = XLSX2ATP.Tower(Torre,geometry,General_Data,cable,posx, posy)
     Level_object.append(LCC1.ET)
 
+
+    # se agregan los connectores trifasicos considerando un caso de dos circuitos
     y = 0
     for i in range(2):
+        
         # numero de circuitos para este caso se asumen dos circuitos
         posx1 = 220 + (100 + Torre * 120) % 2400
         posy1 = 90 + 300 * (1 + Torre // 20) + y
@@ -154,31 +164,28 @@ for Torre in range(len(data_RPT["Nombre"])):
         CONN = XLSX2ATP.Conn(3,posx1,posy1,posx2,posy2)
         Level_object.append(CONN.ET)
 
+
+    # se agregan los probadores que van dentro del cable de guardia
     y = 0
     for i in range(2):
-        # numero de cables de guardia para este caso se asumen dos circuitos
+
+        # numero de cables de guardia para este caso se asumen dos
         posx1 = 220 + (100 + Torre * 120) % 2400
         posy1 = 110 + 300 * (1 + Torre // 20) + y
-        posx2 = posx1 +  10
-        posy2 = posy1
         y = 10
 
-        Probe = XLSX2ATP.Probe(0,Torre,Torre+1,posx1+20,posy1)
+        Probe = XLSX2ATP.Probe(0, str(Torre + 1) + "R", str(Torre+1) + "G" + str(i+1)+ "-1", posx1-60, posy1)
+        Level_object.append(Probe.ET)
+        
+        Probe = XLSX2ATP.Probe(0, str(Torre + 1) + "G" + str(i+1)+ "-2", str(Torre+2) + "R" , posx1+20, posy1)
         Level_object.append(Probe.ET)
 
-        Probe = XLSX2ATP.Probe(0,Torre,Torre+1,posx1-60,posy1)
-        Level_object.append(Probe.ET)
-    
-        
+    # se agrega el probador que va hacia la RPT.
     posx1 = 220 + (100 + Torre * 120) % 2400
     posy1 = 110 + 300 * (1 + Torre // 20) + y
-    posx2 = posx1 +  10
-    posy2 = posy1
 
     Probe = XLSX2ATP.Probe(270,Torre,Torre+1,posx1-80,posy1+20)
     Level_object.append(Probe.ET)
-
-      
 
 
 atp.xmlProject.append(Level_object)
@@ -190,7 +197,3 @@ atp.xmlProject.append(Level_object)
 atp.funcChildObj(atp.xmlProject,"variables",{"NumSim":"1", "IOPCVP":"0"})
 
 atp.funcCompileXML("ATP/" + "Version1",os.getcwd())
-
-#print(data_RPT)
-
-
