@@ -7,36 +7,93 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 import os
 
-
-
-# Se estraen los datos con la funcion ReadFileXML de tal manera que se pueden tener acceso a cualquiera las
-# tablas que se obtienen desde el PLS Cadd
+# Se estraen los datos con la funcion ReadFileXML de tal manera que se pueden tener acceso a cualquiera de las
+# tablas que se obtienen desde el PLSCad
 
 data = ReadXML('PLC/SM_1x220kV_LasDamas_Portezuelos.xml')
 Summary = data.Dicc_Final
 Tables = data.List_Table
 St_Coordinates = data.ExtracData('Structure_Coordinates_Report')
+Stringing_Data= data.ExtracData("Section_Stringing_Data")
+
+
+#############################################################
+##    Datos Para Resistencias de Puesta a tierra           ##
+#############################################################
+
+data_RPT = {"Nombre":list(St_Coordinates["struct_number"]),"RPT": []}
+
+
+for Nombre in range(len(list(St_Coordinates["struct_number"]))):
+    data_RPT["RPT"].append(20)
+
+
+#############################################################
+##                    Datos Para LCC                       ##
+#############################################################
+
+General_Data = {"Nombre": list(St_Coordinates["struct_number"]), "Longitud": list(St_Coordinates["ahead_span"]), "Resistividad":100,
+        "Separacion conductores": 0, "Angulo" :0, "NB": 0,
+        "Circuitos": 1, "Ground": 1, "Frecuencia": 50}  # los demas datos son especificados por el usuario
+
+# Los datos del conductor son especificados por el usuario
+Conductores = {"C1": {"Diametro": 1.265*2, "Resistencia DC": 0.0833, "Reactancia":0.5169},
+               "CG1": {"Diametro": 1.165*2, "Resistencia DC": 0.0643, "Reactancia":0.3369}}
+
+# Se agregan los set
+Set = {"C1": "2", "CG1": "1"}
+
+# Se crea el diccionario con las llaves segun el numero de circuitos y Guardas
+Cable_Data = {"Nombre":[]}
+
+for i in range(General_Data["Circuitos"]):
+    Cable_Data["C" + str(i+1)] = []
+
+for i in range(General_Data["Ground"]):
+    Cable_Data["CG" + str(i+1)] = []
+
+
+
+# se crea un dataframe con los datos de los cables segun corresponda el set
+for clave in Set:
+
+    aux = [] #lista auxiliar para separar el conductor de fase y los cables de guarda
+
+    for i in range(Stringing_Data.shape[0]):
+
+        if Stringing_Data["struct_number"].iloc[i] not in aux and Stringing_Data["set_number"].iloc[i] == Set[clave]:
+            
+            aux.append(Stringing_Data["struct_number"].iloc[i])
+            Cable_Data[clave].append(Conductores[clave])
+    Cable_Data["Nombre"] = aux
+
+DF_Cond_data = pd.DataFrame(Cable_Data)
+
+
+#--------------------------------> Extraer Datos de la geometria desde los archivos del PLC <----------------------------------#
+
 St_Att_Coordinates = data.ExtracData('Structure_Attachment_Coordinates')
-CPh_Definitions = data.ExtracData('Circuit_and_Phase_Definitions_and_Labels')
-Retention_start = CPh_Definitions["start_structure"]
-Retention_end = CPh_Definitions["end_structure"]
 
-Retentions = list(set(Retention_start))
+# Se crea el diccionario con las llaves segun el numero de circuitos y Guardas
+Geometrias = {"Nombre":[]}
 
-Guarda = {"X":[], "Z":[]}
-Geometry = {"Structures":[], "Phase1":[], "Phase2":[], "Phase3":[],
-         'HeightPhase1':[], 'HeightPhase2':[], 'HeightPhase3':[]}
+for i in range(General_Data["Circuitos"]):
+    for j in range(3):
+        Geometrias["C" + str(i+1) + "-" + str(j+1)] = []
 
-for i in Retention_end:
-     if i not in Retentions:
-          Retentions.append(i)
+for i in range(General_Data["Ground"]):
+    Geometrias["CG" + str(i+1) + "-1"] = []
 
+
+# Se crea el Dataframe con las geometrias de las torres
 for i in range(len(St_Coordinates)):
 
     Structure = St_Coordinates.iloc[i]["struct_number"]
     Data_Str = St_Att_Coordinates[St_Att_Coordinates["struct_number"] == Structure]
 
     for Fila in range(len(Data_Str)):
+        
+        aux = {}
         
         Z_ins = Data_Str.iloc[Fila]["insulator_attach_point_z"]
         Z_wire = Data_Str.iloc[Fila]["wire_attach_point_z"]
@@ -46,31 +103,36 @@ for i in range(len(St_Coordinates)):
 
         if Z_ins == Z_wire:
             
-            Guarda["X"].append(np.sqrt(x1_x2**2 + y1_y2**2))
-            Guarda["Z"].append(np.round(np.abs(z1_z2),2))
+            aux["Horiz"] = np.round(np.sqrt(x1_x2**2 + y1_y2**2),2)
+            aux["Vtow"] = np.round(np.abs(z1_z2),2)
+            aux["Vmid"] = np.round(np.abs(z1_z2),2)
+
+            for clave in Set:
+
+                if Set[clave] == Data_Str.iloc[Fila]["set_no"]:
+
+                    Geometrias[clave + "-" +  Data_Str.iloc[Fila]["phase_no"]].append(aux)
+
 
         else:
 
             X = np.round(np.sqrt(x1_x2**2 + y1_y2**2), 2)
             X1 = -X if (x1_x2 < 0) else X
 
-            Geometry["Phase" + Data_Str.iloc[Fila]["phase_no"]].append(np.round(X1))
-            Geometry["Height" + "Phase" + Data_Str.iloc[Fila]["phase_no"]].append(np.round(np.abs(z1_z2),2))
+            aux["Horiz"] = np.round(X1,2)
+            aux["Vtow"] = np.round(np.abs(z1_z2),2)
+            aux["Vmid"] = np.round(np.abs(z1_z2),2)
 
-    Geometry["Structures"].append(Structure)
+            for clave in Set:
 
+                if Set[clave] == Data_Str.iloc[Fila]["set_no"]:
 
-Data_Frame = pd.DataFrame(Geometry)
-
-
-
-
+                    Geometrias[clave + "-" +  Data_Str.iloc[Fila]["phase_no"]].append(aux)
 
 
+    Geometrias["Nombre"].append(Structure)
 
-
-
-
+DF_Geometrias = pd.DataFrame(Geometrias)
 
 
 ########################################################################
@@ -91,71 +153,36 @@ ET.SubElement(atp.xmlProject,
             },
         ),
 
-#############################################################
-#     Datos Para Resistencias de Puesta a tierra           ##
-#############################################################
-
-R = pd.DataFrame({"Nombre":["Nombre 1","Nombre 2"],"RPT":[20, 20]})
-
-data_RPT = {"Nombre":list(St_Coordinates["struct_number"]),"RPT": 0.5,
-            "PosX":[], "PosY":[]}
-
 Level_object = ET.Element("objects",{})
-
-#############################################################
-#                     Datos Para LCC                       ##
-#############################################################
-
-index = 1
-geometrys = {"Torre1":{"Fase1":[-11.761802583, 59.06, 59.06, 4],
-                      "Fase2":[-9.748487062, 47.56, 47.56, 4],
-                      "Fase3":[-17.220002904, 47.56, 47.56, 4],
-                      "Fase4":[12.115213576, 58.97, 58.97, 4],
-                      "Fase5":[10.053377542, 47.56, 47.56, 4],
-                      "Fase6":[17.601775479, 47.56, 47.56, 4],
-                      "Fase7":[-10.474082299, 63.06, 35.62, 4],
-                      "Fase8":[10.474082299, 62.98, 35.39, 4]}} #Horiz="-11.761802583" Vtow="59.06" Vmid="59.06" NB="4"
-
-geometry = geometrys["Torre1"]
-
-
-data = {"Resistividad":100,"RPT": 0.5}
-
-General_Data = {"Longitud": 0.55, "Resistividad":100,
-        "Separacion conductores": 0.5, "Angulo" :45,
-        "Circuitos": 2, "Ground": 2, "Nombre": 1, "Frecuencia": 60}
-
-
-cable = {"Diametro": 1.265*2, "Resistencia DC": 0.0833, "Reactancia":0.5169}
-nextrow = "2"
 
 #############################################################
 #             Creacion de elementos multiples              ##
 #############################################################
 
 
-
 for Torre in range(len(data_RPT["Nombre"])):
 
-    # se agregan las resistencias para cada una de las torres, en este punto se pueden tambien cambair las RPT
+    # se agregan las resistencias para cada una de las torres, en este punto se pueden tambien cambiar las RPT
+    y = 10 if General_Data["Ground"] == 2 else 0
     posx = 140 + (100 + Torre * 120) % 2400
-    posy = 180 + 300 * (1 + Torre // 20)
-    dic1 = XLSX2ATP.Resistor(Torre,R.iloc[0], posx, posy)
+    posy = 170 + 300 * (1 + Torre // 20) + y
+    dic1 = XLSX2ATP.Resistor(Torre,data_RPT["RPT"][Torre], posx, posy)
     Level_object.append(dic1.ET)
 
 
     # Se agregan los LCC solo para un caso ejemplo
+    geometry = DF_Geometrias.iloc[Torre]# en este punto se itera sobre la geometria de todas las torres ############# Se debe cambiar
+    Conductor_Data = DF_Cond_data.iloc[Torre]
     posx = 200 + (100 + Torre * 120) % 2400
     posy = 100 + 300* (1 + Torre// 20)
-    LCC1 = XLSX2ATP.Tower(Torre,geometry,General_Data,cable,posx, posy)
+    LCC1 = XLSX2ATP.Tower(Torre,geometry,General_Data,Conductor_Data,posx, posy)
     Level_object.append(LCC1.ET)
 
 
-    # se agregan los connectores trifasicos considerando un caso de dos circuitos
+    # se agregan los connectores trifasicos
     y = 0
-    for i in range(2):
-        
-        # numero de circuitos para este caso se asumen dos circuitos
+    for i in range(General_Data["Circuitos"]):
+
         posx1 = 220 + (100 + Torre * 120) % 2400
         posy1 = 90 + 300 * (1 + Torre // 20) + y
         posx2 = posx1 +  80
@@ -167,7 +194,7 @@ for Torre in range(len(data_RPT["Nombre"])):
 
     # se agregan los probadores que van dentro del cable de guardia
     y = 0
-    for i in range(2):
+    for i in range(General_Data["Ground"]):
 
         # numero de cables de guardia para este caso se asumen dos
         posx1 = 220 + (100 + Torre * 120) % 2400
@@ -181,8 +208,6 @@ for Torre in range(len(data_RPT["Nombre"])):
         Level_object.append(Probe.ET)
 
     # se agrega el probador que va hacia la RPT.
-    posx1 = 220 + (100 + Torre * 120) % 2400
-    posy1 = 110 + 300 * (1 + Torre // 20) + y
 
     Probe = XLSX2ATP.Probe(270,Torre,Torre+1,posx1-80,posy1+20)
     Level_object.append(Probe.ET)

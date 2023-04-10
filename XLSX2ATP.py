@@ -70,7 +70,7 @@ class Resistor(object):
                 "Ground": "1",
             },
         )
-        ET.SubElement(self.auxET, "data", {"Name": "", "Value": str(row["RPT"])})
+        ET.SubElement(self.auxET, "data", {"Name": "", "Value": str(row)})
         self.ET = ET.Element("comp", attrib={"Name": "RESISTOR"})
         self.ET.append(self.auxET)
 
@@ -177,6 +177,7 @@ class Tower(object):
     def __init__(self, index, geometry, data, cable, posx, posy):
         circuits = data["Circuitos"]
         ground = data["Ground"]
+        Vano = data["Longitud"]
 
         comp_content = ET.Element("comp_content",
             attrib={
@@ -260,7 +261,7 @@ class Tower(object):
             DeltaY += 10
             Kind += 1
             
-        phNumber = circuits*3 + 1
+        phNumber = circuits*3 + ground
         DeltaY = 10
 
         for i in range(ground):
@@ -284,7 +285,7 @@ class Tower(object):
 
         comp_content.append(
                 ET.Element(
-                "data", attrib={"Name": "Length", "Value": str(data["Longitud"])}
+                "data", attrib={"Name": "Length", "Value": str(Vano[index])}
         )
         )
         comp_content.append(
@@ -299,7 +300,7 @@ class Tower(object):
 
         Comp_LCC = ET.Element("LCC",
             attrib={
-            "NumPhases": str(phNumber + 1),
+            "NumPhases": str(phNumber),
             "LineCablePipe": "1",
             "ModelType": "1",
         },
@@ -315,26 +316,55 @@ class Tower(object):
             },
             )
 
-        for i in range(phNumber+1):
-            geometryFase = geometry["Fase" + str(i+1)]
+        cont = 1
+        for i in range(circuits):
+
+            for j in range (3):
+
+                geometryFase = geometry["C" + str(i+1) + "-" + str(j+1)]
+                Cond = cable["C" + str(i+1)]
+
+                line_header.append(
+                    ET.Element("line",
+                        attrib={
+                        "PhNo":str(cont),
+                        "Rin":str(0),
+                        "Rout":str(Cond["Diametro"] / 2),
+                        "Resis":str(Cond["Resistencia DC"]),
+                        "React":str(Cond["Reactancia"]),
+                        "Horiz":str(geometryFase["Horiz"]),
+                        "Vtow":str(geometryFase["Vtow"]),
+                        "Vmid":str(geometryFase["Vmid"]),
+                        "NB":str(data["NB"]),
+                        "Separ":str(data["Separacion conductores"]),
+                        "Alpha":str(data["Angulo"]),
+                        },
+                        )
+                    )
+                cont += 1
+        
+        for i in range(ground):
+
+            geometryFase = geometry["CG" + str(i+1) + "-" + str(1)]
+            Cond = cable["CG" + str(i+1)]
             line_header.append(
                 ET.Element("line",
                     attrib={
-                    "PhNo":str(i+1),
+                    "PhNo":str(cont),
                     "Rin":str(0),
-                    "Rout":str(cable["Diametro"] / 2),
-                    "Resis":str(cable["Resistencia DC"]),
-                    "React":str(cable["Reactancia"]),
-                    "Horiz":str(geometryFase[0]),
-                    "Vtow":str(geometryFase[1]),
-                    "Vmid":str(geometryFase[2]),
-                    "NB":str(geometryFase[3]),
+                    "Rout":str(Cond["Diametro"] / 2),
+                    "Resis":str(Cond["Resistencia DC"]),
+                    "React":str(Cond["Reactancia"]),
+                    "Horiz":str(geometryFase["Horiz"]),
+                    "Vtow":str(geometryFase["Vtow"]),
+                    "Vmid":str(geometryFase["Vmid"]),
+                    "NB":str(data["NB"]),
                     "Separ":str(data["Separacion conductores"]),
                     "Alpha":str(data["Angulo"]),
                     },
                     )
                 )
-
+            cont += 1
 
 
         self.ET = ET.Element("comp", attrib={"Name":"LCC", "Id": str(index+1)})
