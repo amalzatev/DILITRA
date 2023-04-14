@@ -20,41 +20,74 @@ class ReadXML:
         self.readData(file)
 
     def readData(self, file):
+        '''
+        Crea un diccionario con las tablas del reporte, donde cada uno de sus elementos es otro diccionario con sus campos y valores.
+
+        Args:
+            file (str): La ruta del archivo XML del informe PLS-CADD.
+        '''
         
+        # Leer el archivo XML y obtener el elemento root
         doc_xml = parse(file)
         self.root = doc_xml.getroot()
 
+        # Lista con los nombres de todas las tablas del reporte
         self.Nivel1 = self.root.findall("table")
-        self.list_Level1 = [children.attrib["plsname"] for children in (self.Nivel1)] # lista de tablas que existan en el xml separadas por espacio
+        self.list_Level1 = [children.attrib["plsname"] for children in (self.Nivel1)]
 
         for node in self.list_Level1:
-            # Este ciclo es para obtener los elementos de cada una de las tablas
-            # de tal manera que se cree un diccionario que contenga como llave el nombre de la tabla
-            # y como valores los elementos que contengan cada tabla
 
+            # Este ciclo obtiene los campos de cada una de las tablas.
+            # El resultado es un diccionario con el nombre de la tabla como llave y en sus valores los campos que componen cada tabla.
+            # Itera sobre los nombres de las tablas del reporte.
+
+            # Lista con el nombre de los que conforman cada una de las tablas
             Nivel2 = self.root.findall(".//table" +"/[@plsname='" + node + "']/" + node.lower().replace(" ", "_"))
-            list_Nivel2 = [children.tag for children in (Nivel2[0].iter())]
+            list_Nivel2 = [children.tag for children in (Nivel2[0].iter())] # El Nivel2[0] significa que usa solo la primera fila de la tabla (rownum='0')
+            
+            # Diccionario con el nombre de las tablas y sus campos respectivos
             self.Dicc_Tags[node] = list_Nivel2
 
         for key in self.Dicc_Tags.keys():
 
-            # Se crea el diccionario de diccionarios para la extracción de todos los datos
+            # Se crea el diccionario de diccionarios con todos los datos del reporte
+            # Itera sobre los nombres de las tablas del reporte.
 
             Dicc_Tagsaux = {}
+
+            # Añadir de una en una los nombres de las tablas a la lista de tablas
             self.List_Table.append(key.replace(" ", "_")) # cambiar espacios por _ 
 
             for element1 in self.Dicc_Tags[key]:
 
+                # Itera sobre los nombres de los campos de la tabla
+
+                # Busca los elementos de cada uno de los campos de la tabla
                 U = self.root.findall(".//table" +"/[@plsname='" + key + "']/" + key.lower().replace(" ", "_") + "/" + element1)
+
+                # Se obtienen los valores de cada uno de los campos
                 New_list = [element.text for element in U]
 
+                # Se discriminan las listas vacias porque la primera siempre lo sera debido al Element.iter() de antes que devuelve el propio nombre del elemento al que itera
                 if len(New_list) != 0:
+                    
+                    # Se crea el diccionario cuya llave es el campo de la tabla y los valores son los valores de cada fila en la tabla
                     Dicc_Tagsaux[element1] = New_list
+
+                    # Se crea el diccionario resultado modificando las llaves para eliminar los espacios
                     self.Dicc_Final[key.replace(" ", "_")] = Dicc_Tagsaux
 
     def ExtracData(self, table):
 
-        # Extrae la tabla pasada como parametro en un dataframe
+        '''
+        Convierte en DaraFrame un diccionario que contiene la informacion de una de las tablas del reporte PLS-CADD.
+
+        Args:
+            table (str): Nombre de la tabla a extraer que sera una de las llaves de Dicc_Final.
+
+        Returns:
+            pd.DataFrame: DataFrame de la tabla buscada.
+        '''
 
         return  pd.DataFrame(self.Dicc_Final[table])
         
