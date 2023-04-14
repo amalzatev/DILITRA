@@ -1,4 +1,6 @@
 /venv
 /ATP
 /PLS
+/__pycache__
 *.pyc
+*.xlsx
