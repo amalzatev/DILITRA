@@ -1,4 +1,3 @@
-import pandas as pd
 from READXML.ReadFileXML import ReadXML
 import numpy as np
 import XMLATP
