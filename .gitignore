@@ -2,5 +2,6 @@
 /ATP
 /PLS
 /__pycache__
+/READXML/__pycache__
 *.pyc
 *.xlsx
