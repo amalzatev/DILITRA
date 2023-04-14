@@ -9,7 +9,7 @@ import os
 # Se estraen los datos con la funcion ReadFileXML de tal manera que se pueden tener acceso a cualquiera de las
 # tablas que se obtienen desde el PLSCad
 
-data = ReadXML('PLC/SM_1x220kV_LasDamas_Portezuelos.xml')
+data = ReadXML('PLS/SM_1x220kV_LasDamas_Portezuelos.xml')
 Summary = data.Dicc_Final
 Tables = data.List_Table
 St_Coordinates = data.ExtracData('Structure_Coordinates_Report')

@@ -2,5 +2,6 @@
 /ATP
 /PLS
 /__pycache__
+*.pdf
 *.pyc
 *.xlsx
