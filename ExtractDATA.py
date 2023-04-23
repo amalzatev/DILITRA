@@ -6,8 +6,9 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 import os
 
-# Se estraen los datos con la funcion ReadFileXML de tal manera que se pueden tener acceso a cualquiera de las
-# tablas que se obtienen desde el PLSCad
+###############################################################################
+##  Leer y extraer datos de los reportes de PLS-CADD                         ##
+###############################################################################
 
 data = ReadXML('PLS/SM_1x220kV_LasDamas_Portezuelos.xml')
 Summary = data.Dicc_Final
@@ -16,20 +17,19 @@ St_Coordinates = data.ExtracData('Structure_Coordinates_Report')
 Stringing_Data= data.ExtracData("Section_Stringing_Data")
 
 
-#############################################################
-##    Datos Para Resistencias de Puesta a tierra           ##
-#############################################################
+###############################################################################
+##  Datos para resistencias de puesta a tierra                               ##
+###############################################################################
 
 data_RPT = {"Nombre":list(St_Coordinates["struct_number"]),"RPT": []}
 
-
 for Nombre in range(len(list(St_Coordinates["struct_number"]))):
-    data_RPT["RPT"].append(20)
+    data_RPT["RPT"].append(20) # Se asignan 20 Ohm a todas
 
 
-#############################################################
-##                    Datos Para LCC                       ##
-#############################################################
+###############################################################################
+##  Datos para los LCC                                                       ##
+###############################################################################
 
 General_Data = {"Nombre": list(St_Coordinates["struct_number"]), "Longitud": list(St_Coordinates["ahead_span"]), "Resistividad":100,
         "Separacion conductores": 0, "Angulo" :0, "NB": 0,
@@ -51,12 +51,11 @@ for i in range(General_Data["Circuitos"]):
 for i in range(General_Data["Ground"]):
     Cable_Data["CG" + str(i+1)] = []
 
-
-
 # se crea un dataframe con los datos de los cables segun corresponda el set
 for clave in Set:
 
-    aux = [] #lista auxiliar para separar el conductor de fase y los cables de guarda
+    # Lista auxiliar para separar el conductor de fase y los cables de guarda
+    aux = []
 
     for i in range(Stringing_Data.shape[0]):
 
@@ -64,12 +63,15 @@ for clave in Set:
             
             aux.append(Stringing_Data["struct_number"].iloc[i])
             Cable_Data[clave].append(Conductores[clave])
+    
     Cable_Data["Nombre"] = aux
 
 DF_Cond_data = pd.DataFrame(Cable_Data)
 
 
-#--------------------------------> Extraer Datos de la geometria desde los archivos del PLC <----------------------------------#
+###############################################################################
+##  Extraer datos de la geometria desde las tablas del PLS-CADD              ##
+###############################################################################
 
 St_Att_Coordinates = data.ExtracData('Structure_Attachment_Coordinates')
 
