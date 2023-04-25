@@ -67,6 +67,8 @@ class PLS_structure:
             # Luego de crear el diccionario para un punto, este se añade a la lista attachments
             self.attachments.append(attachment_point.copy())
 
+        return self.attachments
+
     def get_structure_coordinates(self, pls_report):
         '''
         Determina las coordenadas del centro de la estructura segun el reporte de PLS-CADD.
@@ -87,6 +89,8 @@ class PLS_structure:
             'y': element.find('y').text,
             'z': element.find('z').text,
         }
+
+        return self.coordinates
 
 
 class Resistor:
