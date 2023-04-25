@@ -14,8 +14,17 @@ class PLS_estructure:
         -attachments (list): Lista con los puntos de sujeción de la estructura. Cada elemento es un diccionario con la información del punto.
     '''
 
-    def __init__(self, name):
+    def __init__(self, name, pls_report):
+        '''
+        Constructor de la clase.
+
+        args:
+            -name (str): Nombre de la estructura en el PLS-CADD.
+            -pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.
+        '''
         self.name = name
+        self.get_attachment_points(pls_report)
+        self.get_estructure_coordinates(pls_report)
 
     def get_attachment_points(self, pls_report):
         '''
@@ -23,7 +32,8 @@ class PLS_estructure:
         Cada elemento de la lista es un punto representado por un diccionario con la información del set, fase y las coordenadas de sujeción del conductor y el aislador.
 
         arg:
-            pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.'''
+            pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.
+        '''
 
         # Inicialización de la lista que contendrá los puntos de sujeción
         self.attachments = []
@@ -32,10 +42,10 @@ class PLS_estructure:
         attachment_point = {}
 
         # La información de los puntos de sujeción se encuentra en la tabla structure_attachment_coordinates del reporte Summary
-        lookup_table = "'structure_attachment_coordinates'"
+        lookup_table = 'structure_attachment_coordinates'
 
         # Se itera sobre el reporte summary buscando los puntos que corresponden a la estrucutra self.name
-        for element in pls_report.findall('./table[@tagname=' + lookup_table + ']/structure_attachment_coordinates/[struct_number="' + self.name + '"]'):
+        for element in pls_report.findall('./table[@tagname="' + lookup_table + '"]/' + lookup_table + '/[struct_number="' + self.name + '"]'):
 
             attachment_point['set_no'] = element.find('set_no').text
             attachment_point['phase_no'] = element.find('phase_no').text
@@ -56,6 +66,27 @@ class PLS_estructure:
 
             # Luego de crear el diccionario para un punto, este se añade a la lista attachments
             self.attachments.append(attachment_point.copy())
+
+    def get_estructure_coordinates(self, pls_report):
+        '''
+        Determina las coordenadas del centro de la estructura segun el reporte de PLS-CADD.
+
+                arg:
+            pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.
+        '''
+
+        # La información de coordenadas se encuentra en la tabla structure_coordinates_report del reporte Summary
+        lookup_table = 'structure_coordinates_report'
+
+        # Se busca en el reporte summary las coordenadas que corresponden a la estrucutra self.name
+        element = pls_report.find('./table[@tagname="' + lookup_table + '"]/' + lookup_table + '/[struct_number="' + self.name + '"]')
+
+        # Las coordenadas se guarden en un diccionario
+        self.coordinates = {
+            'x': element.find('x').text,
+            'y': element.find('y').text,
+            'z': element.find('z').text,
+        }
 
 
 class Resistor:
