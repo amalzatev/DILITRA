@@ -78,6 +78,10 @@ class Test_PLS_structure(unittest.TestCase):
         returned = attachment_points[3].get('wire_attach_point').get('x')
         self.assertEqual(returned, expected)
 
+        expected = '4'
+        returned = attachment_points[2].get('section_number')
+
+
 
 if __name__ == '__main__':
     unittest.main()
