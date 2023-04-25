@@ -10,21 +10,52 @@ class PLS_estructure:
     Clase para el objeto LCC de ATPDraw.
 
     Atributos:
-
+        -name (str): Nombre de la estructura en el PLS-CADD.
+        -attachments (list): Lista con los puntos de sujeción de la estructura. Cada elemento es un diccionario con la información del punto.
     '''
 
     def __init__(self, name):
         self.name = name
 
-    def get_attachment_coordinates(self, pls_report):
+    def get_attachment_points(self, pls_report):
+        '''
+        Crea una lista con los puntos de sujeción de la estructura.
+        Cada elemento de la lista es un punto representado por un diccionario con la información del set, fase y las coordenadas de sujeción del conductor y el aislador.
 
-        attachments = {}
+        arg:
+            pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.'''
 
-        for element in pls_report.find("./table[@tagname='structure_attachment_coordinates']/*"):
+        # Inicialización de la lista que contendrá los puntos de sujeción
+        self.attachments = []
 
-            attachments['set_no'] = element.find('set_no').text
-            attachments['set_no'] = element.find('set_no').text
+        # Diccionario auxiliar para almacenar punto por punto que luego será agregado a attachments
+        attachment_point = {}
 
+        # La información de los puntos de sujeción se encuentra en la tabla structure_attachment_coordinates del reporte Summary
+        lookup_table = "'structure_attachment_coordinates'"
+
+        # Se itera sobre el reporte summary buscando los puntos que corresponden a la estrucutra self.name
+        for element in pls_report.findall('./table[@tagname=' + lookup_table + ']/structure_attachment_coordinates/[struct_number="' + self.name + '"]'):
+
+            attachment_point['set_no'] = element.find('set_no').text
+            attachment_point['phase_no'] = element.find('phase_no').text
+
+            attachment_point['insulator_attach_point'] = {
+                'x': element.find('insulator_attach_point_x').text,
+                'y': element.find('insulator_attach_point_y').text,
+                'z': element.find('insulator_attach_point_z').text,
+            }
+
+            attachment_point['wire_attach_point'] = {
+                'x': element.find('wire_attach_point_x').text,
+                'y': element.find('wire_attach_point_y').text,
+                'z': element.find('wire_attach_point_z').text,
+            }
+
+            attachment_point['section_number'] = element.find('section_number').text
+
+            # Luego de crear el diccionario para un punto, este se añade a la lista attachments
+            self.attachments.append(attachment_point.copy())
 
 
 class Resistor:
