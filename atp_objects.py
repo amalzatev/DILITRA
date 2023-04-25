@@ -5,7 +5,7 @@ Clases de los objetos usados por ATPDraw
 import xml.etree.ElementTree as ET
 
 
-class PLS_estructure:
+class PLS_structure:
     '''
     Clase para el objeto LCC de ATPDraw.
 
@@ -24,7 +24,7 @@ class PLS_estructure:
         '''
         self.name = name
         self.get_attachment_points(pls_report)
-        self.get_estructure_coordinates(pls_report)
+        self.get_structure_coordinates(pls_report)
 
     def get_attachment_points(self, pls_report):
         '''
@@ -67,7 +67,7 @@ class PLS_estructure:
             # Luego de crear el diccionario para un punto, este se añade a la lista attachments
             self.attachments.append(attachment_point.copy())
 
-    def get_estructure_coordinates(self, pls_report):
+    def get_structure_coordinates(self, pls_report):
         '''
         Determina las coordenadas del centro de la estructura segun el reporte de PLS-CADD.
 
