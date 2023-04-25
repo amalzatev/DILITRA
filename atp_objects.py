@@ -4,6 +4,29 @@ Clases de los objetos usados por ATPDraw
 
 import xml.etree.ElementTree as ET
 
+
+class PLS_estructure:
+    '''
+    Clase para el objeto LCC de ATPDraw.
+
+    Atributos:
+
+    '''
+
+    def __init__(self, name):
+        self.name = name
+
+    def get_attachment_coordinates(self, pls_report):
+
+        attachments = {}
+
+        for element in pls_report.find("./table[@tagname='structure_attachment_coordinates']/*"):
+
+            attachments['set_no'] = element.find('set_no').text
+            attachments['set_no'] = element.find('set_no').text
+
+
+
 class Resistor:
     '''
     Clase para el objeto resistencia de ATPDraw.
