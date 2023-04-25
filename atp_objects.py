@@ -39,7 +39,7 @@ class PLS_structure:
         # Se busca en el reporte summary el vano que corresponde a la estrucutra
         structure_coordinates_table = pls_summary.get_table(lookup_table)
         element = structure_coordinates_table.find('./' + lookup_table + '/[struct_number="' + self.name + '"]')
-        self.ahead_span = element.find('ahead_span').text
+        self.ahead_span = float(element.find('ahead_span').text)
 
         return self.ahead_span
 
@@ -71,15 +71,15 @@ class PLS_structure:
             attachment_point['phase_no'] = element.find('phase_no').text
 
             attachment_point['insulator_attach_point'] = {
-                'x': element.find('insulator_attach_point_x').text,
-                'y': element.find('insulator_attach_point_y').text,
-                'z': element.find('insulator_attach_point_z').text,
+                'x': float(element.find('insulator_attach_point_x').text),
+                'y': float(element.find('insulator_attach_point_y').text),
+                'z': float(element.find('insulator_attach_point_z').text),
             }
 
             attachment_point['wire_attach_point'] = {
-                'x': element.find('wire_attach_point_x').text,
-                'y': element.find('wire_attach_point_y').text,
-                'z': element.find('wire_attach_point_z').text,
+                'x': float(element.find('wire_attach_point_x').text),
+                'y': float(element.find('wire_attach_point_y').text),
+                'z': float(element.find('wire_attach_point_z').text),
             }
 
             attachment_point['section_number'] = element.find('section_number').text
@@ -106,9 +106,9 @@ class PLS_structure:
 
         # Las coordenadas se guarden en un diccionario
         self.coordinates = {
-            'x': element.find('x').text,
-            'y': element.find('y').text,
-            'z': element.find('z').text,
+            'x': float(element.find('x').text),
+            'y': float(element.find('y').text),
+            'z': float(element.find('z').text),
         }
 
         return self.coordinates
