@@ -26,6 +26,24 @@ class PLS_structure:
         self.name = name
         self.get_attachment_points()
         self.get_structure_coordinates()
+        self.get_ahead_span()
+
+    def get_ahead_span(self):
+        '''
+        Identifica y guarda el vano adelante de la estructura.
+        '''
+
+        # La información del vano adelante se extraera de la tabla structure_coordinates_report del reporte Summary
+        lookup_table = 'structure_coordinates_report'
+
+        # Se busca en el reporte summary el vano que corresponde a la estrucutra
+        structure_coordinates_table = pls_summary.get_table(lookup_table)
+        element = structure_coordinates_table.find('./' + lookup_table + '/[struct_number="' + self.name + '"]')
+        self.ahead_span = element.find('ahead_span').text
+
+        return self.ahead_span
+
+
 
     def get_attachment_points(self):
         '''
@@ -82,7 +100,7 @@ class PLS_structure:
         # La información de coordenadas se encuentra en la tabla structure_coordinates_report del reporte Summary
         lookup_table = 'structure_coordinates_report'
 
-        # Se busca en el reporte summary las coordenadas que corresponden a la estrucutra self.name
+        # Se busca en el reporte summary las coordenadas que corresponden a la estrucutra
         structure_coordinates_table = pls_summary.get_table(lookup_table)
         element = structure_coordinates_table.find('./' + lookup_table + '/[struct_number="' + self.name + '"]')
 

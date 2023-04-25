@@ -52,6 +52,10 @@ class Test_PLS_structure(unittest.TestCase):
             name = '10',
             )
 
+    def test_ahead_span(self):
+        expected_span = '435.48'
+        self.assertEqual(self.structure1.ahead_span, expected_span)
+
 
     def test_structure_coordinates(self):
         coordinates = self.structure1.get_structure_coordinates()
