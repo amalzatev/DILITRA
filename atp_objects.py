@@ -3,6 +3,7 @@ Clases de los objetos usados por ATPDraw
 '''
 
 import xml.etree.ElementTree as ET
+from plscadd_report import pls_summary
 
 
 class PLS_structure:
@@ -14,7 +15,7 @@ class PLS_structure:
         -attachments (list): Lista con los puntos de sujeción de la estructura. Cada elemento es un diccionario con la información del punto.
     '''
 
-    def __init__(self, name, pls_report):
+    def __init__(self, name):
         '''
         Constructor de la clase.
 
@@ -23,10 +24,10 @@ class PLS_structure:
             -pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.
         '''
         self.name = name
-        self.get_attachment_points(pls_report)
-        self.get_structure_coordinates(pls_report)
+        self.get_attachment_points()
+        self.get_structure_coordinates()
 
-    def get_attachment_points(self, pls_report):
+    def get_attachment_points(self):
         '''
         Crea una lista con los puntos de sujeción de la estructura.
         Cada elemento de la lista es un punto representado por un diccionario con la información del set, fase y las coordenadas de sujeción del conductor y el aislador.
@@ -45,7 +46,8 @@ class PLS_structure:
         lookup_table = 'structure_attachment_coordinates'
 
         # Se itera sobre el reporte summary buscando los puntos que corresponden a la estrucutra self.name
-        for element in pls_report.findall('./table[@tagname="' + lookup_table + '"]/' + lookup_table + '/[struct_number="' + self.name + '"]'):
+        structure_attachment_table = pls_summary.get_table(lookup_table)
+        for element in structure_attachment_table.findall('./' + lookup_table + '/[struct_number="' + self.name + '"]'):
 
             attachment_point['set_no'] = element.find('set_no').text
             attachment_point['phase_no'] = element.find('phase_no').text
@@ -69,7 +71,7 @@ class PLS_structure:
 
         return self.attachments
 
-    def get_structure_coordinates(self, pls_report):
+    def get_structure_coordinates(self):
         '''
         Determina las coordenadas del centro de la estructura segun el reporte de PLS-CADD.
 
@@ -81,7 +83,8 @@ class PLS_structure:
         lookup_table = 'structure_coordinates_report'
 
         # Se busca en el reporte summary las coordenadas que corresponden a la estrucutra self.name
-        element = pls_report.find('./table[@tagname="' + lookup_table + '"]/' + lookup_table + '/[struct_number="' + self.name + '"]')
+        structure_coordinates_table = pls_summary.get_table(lookup_table)
+        element = structure_coordinates_table.find('./' + lookup_table + '/[struct_number="' + self.name + '"]')
 
         # Las coordenadas se guarden en un diccionario
         self.coordinates = {

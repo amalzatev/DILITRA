@@ -48,19 +48,13 @@ class Test_PLS_structure(unittest.TestCase):
 
     def setUp(self):
 
-        summary_filepath = 'PLS/SM_1x220kV_LasDamas_Portezuelos.xml'
-        self.summary_root = PLS_report(summary_filepath).get_root()
-
         self.structure1 = PLS_structure(
             name = '10',
-            pls_report = self.summary_root,
             )
 
 
     def test_structure_coordinates(self):
-        coordinates = self.structure1.get_structure_coordinates(
-            pls_report=self.summary_root
-        )
+        coordinates = self.structure1.get_structure_coordinates()
         real_coordinates = {
             'x': '254405.97',
             'y': '6193319.82',
@@ -70,9 +64,7 @@ class Test_PLS_structure(unittest.TestCase):
 
 
     def test_attachment_points(self):
-        attachment_points = self.structure1.get_attachment_points(
-            pls_report=self.summary_root
-        )
+        attachment_points = self.structure1.get_attachment_points()
 
         expected = '6193315.84'
         returned = attachment_points[1].get('insulator_attach_point').get('y')
