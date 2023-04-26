@@ -80,6 +80,7 @@ class Test_PLS_structure(unittest.TestCase):
 
         expected = '4'
         returned = attachment_points[2].get('section_number')
+        self.assertEqual(returned, expected)
 
 
 
