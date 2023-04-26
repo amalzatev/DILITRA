@@ -13,6 +13,8 @@ class PLS_structure:
     Atributos:
         -name (str): Nombre de la estructura en el PLS-CADD.
         -attachments (list): Lista con los puntos de sujeción de la estructura. Cada elemento es un diccionario con la información del punto.
+        -coordinates (dict): Diccionario con las coordenadas en x, y, z del centro de la estrcutura en metros.
+        -ahead_span (float): Vano adelante de la estructura.
     '''
 
     def __init__(self, name):
@@ -21,7 +23,6 @@ class PLS_structure:
 
         args:
             -name (str): Nombre de la estructura en el PLS-CADD.
-            -pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.
         '''
         self.name = name
         self.get_attachment_points()
@@ -42,8 +43,6 @@ class PLS_structure:
         self.ahead_span = float(element.find('ahead_span').text)
 
         return self.ahead_span
-
-
 
     def get_attachment_points(self):
         '''

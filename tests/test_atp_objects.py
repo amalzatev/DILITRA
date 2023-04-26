@@ -58,7 +58,7 @@ class Test_PLS_structure(unittest.TestCase):
 
 
     def test_structure_coordinates(self):
-        coordinates = self.structure1.get_structure_coordinates()
+        coordinates = self.structure1.coordinates
         real_coordinates = {
             'x': 254405.97,
             'y': 6193319.82,
@@ -68,7 +68,7 @@ class Test_PLS_structure(unittest.TestCase):
 
 
     def test_attachment_points(self):
-        attachment_points = self.structure1.get_attachment_points()
+        attachment_points = self.structure1.attachments
 
         expected = 6193315.84
         returned = attachment_points[1].get('insulator_attach_point').get('y')
