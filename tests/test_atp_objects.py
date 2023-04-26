@@ -82,5 +82,12 @@ class Test_PLS_structure(unittest.TestCase):
     def test_get_structure_sets(self):
         self.assertEqual(self.structure1.sets, ['1', '2'])
 
+    def test_get_structure_phases(self):
+        phases = {
+            '1': ['1'],
+            '2': ['1', '2', '3'],
+        }
+        self.assertEqual(self.structure1.phases, phases)
+
 if __name__ == '__main__':
     unittest.main()

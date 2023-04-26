@@ -29,6 +29,7 @@ class PLS_structure:
         self.coordinates = self.get_structure_coordinates()
         self.ahead_span = self.get_ahead_span()
         self.sets = self.get_structure_sets()
+        self.phases = self.get_structure_phases(self.sets)
 
     def get_structure_sets(self):
         '''
@@ -37,20 +38,46 @@ class PLS_structure:
         return:
             -sets (list): Lista con cada uno de los sets de la estructura.'''
 
-        # Se crea un set vacio
         sets = []
 
         # La información de los sets de la estrcutura se encuentra de la tabla structure_attachment_coordinates del reporte Summary
         lookup_table = 'structure_attachment_coordinates'
         structure_attachment_table = pls_summary.get_table(lookup_table)
+        lookup_path = './' + lookup_table + '/[struct_number="' + self.name + '"]/set_no'
 
-        for element in structure_attachment_table.findall('./structure_attachment_coordinates/[struct_number="10"]/set_no'):
+        for element in structure_attachment_table.findall(lookup_path):
 
             # Agregar solo valores unicos
             if element.text not in sets:
                 sets.append(element.text)
 
         return sets
+
+    def get_structure_phases(self, sets):
+        '''
+        Identifica las fases que contiene cada uno de los sets de la estructura. Devuelve un diccionario con las fases de cada uno de los sets.
+        '''
+
+        phases = {}
+
+        # La información de las fases de la estrcutura se encuentra de la tabla structure_attachment_coordinates del reporte Summary
+        lookup_table = 'structure_attachment_coordinates'
+        structure_attachment_table = pls_summary.get_table(lookup_table)
+
+        for set_i in sets:
+
+            lookup_path = './' + lookup_table + '/[struct_number="' + self.name + '"]/[set_no="' + set_i + '"]/phase_no'
+            filtered_elements = structure_attachment_table.findall(lookup_path)
+
+            phases[set_i] = []
+
+            for element in filtered_elements:
+
+                # Agregar solo valores unicos
+                if element.text not in phases[set_i]:
+                    phases[set_i].append(element.text)
+
+        return phases
 
     def get_ahead_span(self):
         '''
