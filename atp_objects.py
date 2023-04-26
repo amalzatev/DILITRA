@@ -25,7 +25,6 @@ class PLS_structure:
             -name (str): Nombre de la estructura en el PLS-CADD.
         '''
         self.name = name
-        self.attachment_points = self.get_attachment_points()
         self.coordinates = self.get_structure_coordinates()
         self.ahead_span = self.get_ahead_span()
         self.sets = self.get_structure_sets()
@@ -94,49 +93,30 @@ class PLS_structure:
 
         return ahead_span
 
-    def get_attachment_points(self):
+    def get_attachment_point(self, set_no, phase_no, point):
         '''
-        Crea una lista con los puntos de sujeción de la estructura.
-        Cada elemento de la lista es un punto representado por un diccionario con la información del set, fase y las coordenadas de sujeción del conductor y el aislador.
-
-        arg:
-            pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.
+        Devuelve la coordenada del punto de sujecion especificado.
         '''
 
-        # Inicialización de la lista que contendrá los puntos de sujeción
-        attachments = []
-
-        # Diccionario auxiliar para almacenar punto por punto que luego será agregado a attachments
-        attachment_point = {}
-
-        # La información de los puntos de sujeción se encuentra en la tabla structure_attachment_coordinates del reporte Summary
+        # La información de los puntos de sujeción se encuentra de la tabla structure_attachment_coordinates del reporte Summary
         lookup_table = 'structure_attachment_coordinates'
-
-        # Se itera sobre el reporte summary buscando los puntos que corresponden a la estrucutra self.name
         structure_attachment_table = pls_summary.get_table(lookup_table)
-        for element in structure_attachment_table.findall('./' + lookup_table + '/[struct_number="' + self.name + '"]'):
 
-            attachment_point['set_no'] = element.find('set_no').text
-            attachment_point['phase_no'] = element.find('phase_no').text
+        lookup_path = './' + lookup_table
+        lookup_path = lookup_path + '/[struct_number="' + self.name + '"]'
+        lookup_path = lookup_path + '/[set_no="' + set_no + '"]'
+        lookup_path = lookup_path + '/[phase_no="' + phase_no + '"]'
+        lookup_path = lookup_path + '/' + point
 
-            attachment_point['insulator_attach_point'] = {
-                'x': float(element.find('insulator_attach_point_x').text),
-                'y': float(element.find('insulator_attach_point_y').text),
-                'z': float(element.find('insulator_attach_point_z').text),
-            }
+        attachment_point = structure_attachment_table.find(lookup_path).text
 
-            attachment_point['wire_attach_point'] = {
-                'x': float(element.find('wire_attach_point_x').text),
-                'y': float(element.find('wire_attach_point_y').text),
-                'z': float(element.find('wire_attach_point_z').text),
-            }
+        try:
+            attachment_point = float(attachment_point)
+        except:
+            print('\n' + "El punto ingresado no corresponde a un punto de sujecion. No es un numero.")
 
-            attachment_point['section_number'] = element.find('section_number').text
+        return attachment_point
 
-            # Luego de crear el diccionario para un punto, este se añade a la lista attachments
-            attachments.append(attachment_point.copy())
-
-        return attachments
 
     def get_structure_coordinates(self):
         '''

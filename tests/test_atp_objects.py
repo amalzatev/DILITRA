@@ -64,20 +64,29 @@ class Test_PLS_structure(unittest.TestCase):
         }
         self.assertEqual(coordinates, real_coordinates)
 
-    def test_attachment_points(self):
-        attachment_points = self.structure1.attachment_points
+    def test_attachment_point(self):
 
-        expected = 6193315.84
-        returned = attachment_points[1].get('insulator_attach_point').get('y')
-        self.assertEqual(returned, expected)
+        returned = self.structure1.get_attachment_point(
+            set_no='2',
+            phase_no='1',
+            point='wire_attach_point_y'
+        )
+        self.assertEqual(returned, 6193315.84)
 
-        expected = 254406.39
-        returned = attachment_points[3].get('wire_attach_point').get('x')
-        self.assertEqual(returned, expected)
+        returned = self.structure1.get_attachment_point(
+            set_no='1',
+            phase_no='1',
+            point='wire_attach_point_z'
+        )
+        self.assertEqual(returned, 174.05)
 
-        expected = '4'
-        returned = attachment_points[2].get('section_number')
-        self.assertEqual(returned, expected)
+        returned = self.structure1.get_attachment_point(
+            set_no='2',
+            phase_no='1',
+            point='set_label'
+        )
+        self.assertRaises(ValueError)
+
 
     def test_get_structure_sets(self):
         self.assertEqual(self.structure1.sets, ['1', '2'])
