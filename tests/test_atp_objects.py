@@ -55,7 +55,6 @@ class Test_PLS_structure(unittest.TestCase):
         expected_span = 435.48
         self.assertEqual(self.structure1.ahead_span, expected_span)
 
-
     def test_structure_coordinates(self):
         coordinates = self.structure1.coordinates
         real_coordinates = {
@@ -65,9 +64,8 @@ class Test_PLS_structure(unittest.TestCase):
         }
         self.assertEqual(coordinates, real_coordinates)
 
-
     def test_attachment_points(self):
-        attachment_points = self.structure1.attachments
+        attachment_points = self.structure1.attachment_points
 
         expected = 6193315.84
         returned = attachment_points[1].get('insulator_attach_point').get('y')
@@ -81,7 +79,8 @@ class Test_PLS_structure(unittest.TestCase):
         returned = attachment_points[2].get('section_number')
         self.assertEqual(returned, expected)
 
-
+    def test_get_structure_sets(self):
+        self.assertEqual(self.structure1.sets, ['1', '2'])
 
 if __name__ == '__main__':
     unittest.main()

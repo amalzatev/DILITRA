@@ -25,9 +25,32 @@ class PLS_structure:
             -name (str): Nombre de la estructura en el PLS-CADD.
         '''
         self.name = name
-        self.get_attachment_points()
-        self.get_structure_coordinates()
-        self.get_ahead_span()
+        self.attachment_points = self.get_attachment_points()
+        self.coordinates = self.get_structure_coordinates()
+        self.ahead_span = self.get_ahead_span()
+        self.sets = self.get_structure_sets()
+
+    def get_structure_sets(self):
+        '''
+        Identifica el conjunto de sets de la estrucutra.
+
+        return:
+            -sets (list): Lista con cada uno de los sets de la estructura.'''
+
+        # Se crea un set vacio
+        sets = []
+
+        # La información de los sets de la estrcutura se encuentra de la tabla structure_attachment_coordinates del reporte Summary
+        lookup_table = 'structure_attachment_coordinates'
+        structure_attachment_table = pls_summary.get_table(lookup_table)
+
+        for element in structure_attachment_table.findall('./structure_attachment_coordinates/[struct_number="10"]/set_no'):
+
+            # Agregar solo valores unicos
+            if element.text not in sets:
+                sets.append(element.text)
+
+        return sets
 
     def get_ahead_span(self):
         '''
@@ -40,9 +63,9 @@ class PLS_structure:
         # Se busca en el reporte summary el vano que corresponde a la estrucutra
         structure_coordinates_table = pls_summary.get_table(lookup_table)
         element = structure_coordinates_table.find('./' + lookup_table + '/[struct_number="' + self.name + '"]')
-        self.ahead_span = float(element.find('ahead_span').text)
+        ahead_span = float(element.find('ahead_span').text)
 
-        return self.ahead_span
+        return ahead_span
 
     def get_attachment_points(self):
         '''
@@ -54,7 +77,7 @@ class PLS_structure:
         '''
 
         # Inicialización de la lista que contendrá los puntos de sujeción
-        self.attachments = []
+        attachments = []
 
         # Diccionario auxiliar para almacenar punto por punto que luego será agregado a attachments
         attachment_point = {}
@@ -84,9 +107,9 @@ class PLS_structure:
             attachment_point['section_number'] = element.find('section_number').text
 
             # Luego de crear el diccionario para un punto, este se añade a la lista attachments
-            self.attachments.append(attachment_point.copy())
+            attachments.append(attachment_point.copy())
 
-        return self.attachments
+        return attachments
 
     def get_structure_coordinates(self):
         '''
@@ -104,13 +127,13 @@ class PLS_structure:
         element = structure_coordinates_table.find('./' + lookup_table + '/[struct_number="' + self.name + '"]')
 
         # Las coordenadas se guarden en un diccionario
-        self.coordinates = {
+        coordinates = {
             'x': float(element.find('x').text),
             'y': float(element.find('y').text),
             'z': float(element.find('z').text),
         }
 
-        return self.coordinates
+        return coordinates
 
 
 class Resistor:
