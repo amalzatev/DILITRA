@@ -7,7 +7,6 @@ sys.path.append(os.getcwd())
 
 from atp_objects import Resistor
 from atp_objects import PLS_structure
-from plscadd_report import PLS_report
 
 
 class Test_Resistor(unittest.TestCase):
