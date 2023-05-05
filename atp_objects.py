@@ -12,9 +12,16 @@ class PLS_structure:
 
     Atributos:
         -name (str): Nombre de la estructura en el PLS-CADD.
-        -attachments (list): Lista con los puntos de sujeción de la estructura. Cada elemento es un diccionario con la información del punto.
         -coordinates (dict): Diccionario con las coordenadas en x, y, z del centro de la estrcutura en metros.
         -ahead_span (float): Vano adelante de la estructura.
+        -sets (list): Lista con cada uno de los sets de la estructura.
+
+    Metodos:
+        get_structure_sets: Identifica el conjunto de sets de la estrucutra.
+        get_structure_phases: Identifica las fases que contiene cada uno de los sets de la estructura. Devuelve un diccionario con las fases de cada uno de los sets.
+        get_ahead_span: Identifica y guarda el vano adelante de la estructura.
+        get_attachment_point: Devuelve la coordenada del punto de sujecion especificado.
+        get_structure_coordinates: Determina las coordenadas del centro de la estructura.
     '''
 
     def __init__(self, name):
@@ -55,6 +62,12 @@ class PLS_structure:
     def get_structure_phases(self, sets):
         '''
         Identifica las fases que contiene cada uno de los sets de la estructura. Devuelve un diccionario con las fases de cada uno de los sets.
+
+        arg:
+            -sets (list): Lista con cada uno de los sets de la estructura.
+
+        return:
+            -phases(dict): Diccionario cuyas llaves son los sets de la estructura y sus valores son una lista con las fases de cada uno de los sets.
         '''
 
         phases = {}
@@ -81,6 +94,9 @@ class PLS_structure:
     def get_ahead_span(self):
         '''
         Identifica y guarda el vano adelante de la estructura.
+
+        return:
+            -ahead_span(float): Longitud del vano adelante de la estructura en metros.
         '''
 
         # La información del vano adelante se extraera de la tabla structure_coordinates_report del reporte Summary
@@ -96,6 +112,14 @@ class PLS_structure:
     def get_attachment_point(self, set_no, phase_no, point):
         '''
         Devuelve la coordenada del punto de sujecion especificado.
+
+        args:
+            -set_no(str): Nombre del set buscado.
+            -phase_no(str): Nombre de la fase buscada.
+            -point(str): Nombre del punto buscado. Debe corresponder con los campos que trae el reporte XML de PLS-CADD.
+
+        return:
+            -attachment_point(float): Coordenada del punto buscado.
         '''
 
         # La información de los puntos de sujeción se encuentra de la tabla structure_attachment_coordinates del reporte Summary
@@ -117,13 +141,12 @@ class PLS_structure:
 
         return attachment_point
 
-
     def get_structure_coordinates(self):
         '''
-        Determina las coordenadas del centro de la estructura segun el reporte de PLS-CADD.
+        Determina las coordenadas del centro de la estructura.
 
-                arg:
-            pls_report (xml.etree.ElementTree.Element): Elemento root del reporte summary del PLS-CADD.
+        return:
+            -coordinates(dict): Diccionario con las coordenadas x, y, z.
         '''
 
         # La información de coordenadas se encuentra en la tabla structure_coordinates_report del reporte Summary
