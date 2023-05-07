@@ -1,12 +1,14 @@
 import unittest
-import xml.etree.ElementTree as ET
+from unittest.mock import Mock
 
 import os
 import sys
+
 sys.path.append(os.getcwd())
 
 from atp_objects import Resistor
 from atp_objects import PLS_structure
+from atp_objects import LCC
 
 
 class Test_Resistor(unittest.TestCase):
@@ -87,7 +89,6 @@ class Test_PLS_structure(unittest.TestCase):
         )
         self.assertRaises(ValueError)
 
-
     def test_get_structure_sets(self):
         self.assertEqual(self.structure1.sets, ['1', '2'])
 
@@ -97,6 +98,33 @@ class Test_PLS_structure(unittest.TestCase):
             '2': ['1', '2', '3'],
         }
         self.assertEqual(self.structure1.phases, phases)
+
+
+class Test_LCC(unittest.TestCase):
+
+    def setUp(self):
+
+        self.structure = Mock()
+        self.structure.sets = ['1', '2']
+
+        self.lcc = LCC(
+            id = 'lcc',
+            length = 1.0,
+            frequency = 60.0,
+            grnd_resist = 100.0,
+            structure = self.structure,
+        )
+
+    def test_get_num_circuits(self):
+
+        self.assertEqual(self.lcc.get_num_circuits(), 1)
+
+        self.lcc.structure.sets = ['1', '2', '3']
+        self.assertEqual(self.lcc.get_num_circuits(), 2)
+
+        self.lcc.structure.sets = ['1', '10', '11', '12']
+        self.assertEqual(self.lcc.get_num_circuits(), 0)
+
 
 if __name__ == '__main__':
     unittest.main()

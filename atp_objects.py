@@ -137,7 +137,7 @@ class PLS_structure:
         try:
             attachment_point = float(attachment_point)
         except:
-            print('\n' + "El punto ingresado no corresponde a un punto de sujecion. No es un numero.")
+            print('\n' + "El campo " + point + " no corresponde a un punto de sujeción.")
 
         return attachment_point
 
@@ -232,3 +232,43 @@ class Resistor:
                     )
 
         return comp
+
+
+class LCC:
+    '''
+    Clase para el objetco LCC de ATPDraw.
+
+    Atributos:
+        -id(str): Nombre del LCC.
+        -length(float): Longitud del vano en km.
+        -frequency(float): Frecuencia industrial del sistema en Hz.
+        -grnd_resist(float): Resistividad del terreno en Ohm-m.
+        -structure(atp_objects.PLS_structure): Estructura de la cual nace el vano.
+
+    Metodos:
+        -get_num_circuits: Determina el numero de circuitos del LCC según los sets de la estructura del PLS-CADD.
+    '''
+
+    def __init__(self, id, length, frequency, grnd_resist, structure):
+        self.id = id
+        self.length = length
+        self.frequency = frequency
+        self.grnd_resist = grnd_resist
+        self.structure = structure
+
+        self.num_circuits = self.get_num_circuits()
+
+    def get_num_circuits(self):
+        '''
+        Determina el numero de circuitos del LCC según los sets de la estructura del PLS-CADD.
+
+        return:
+            -num_circuits(int): Numero de circuitos.
+        '''
+
+        num_circuits = 0
+        for set_i in self.structure.sets:
+            if set_i[0] != '1':
+                num_circuits += 1
+
+        return num_circuits
