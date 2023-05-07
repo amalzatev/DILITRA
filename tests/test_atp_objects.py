@@ -125,6 +125,16 @@ class Test_LCC(unittest.TestCase):
         self.lcc.structure.sets = ['1', '10', '11', '12']
         self.assertEqual(self.lcc.get_num_circuits(), 0)
 
+    def test_get_num_phases(self):
+
+        self.assertEqual(self.lcc.get_num_phases(), 2)
+
+        self.lcc.structure.sets = ['1', '2', '3']
+        self.assertEqual(self.lcc.get_num_phases(), 3)
+
+        self.lcc.structure.sets = ['1', '10', '11', '12']
+        self.assertEqual(self.lcc.get_num_phases(), 4)
+
 
 if __name__ == '__main__':
     unittest.main()

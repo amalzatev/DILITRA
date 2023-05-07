@@ -247,6 +247,7 @@ class LCC:
 
     Metodos:
         -get_num_circuits: Determina el numero de circuitos del LCC según los sets de la estructura del PLS-CADD.
+        -get_num_phases: Determina el numero de fases del LCC según los sets de la estructura del PLS-CADD.
     '''
 
     def __init__(self, id, length, frequency, grnd_resist, structure):
@@ -272,3 +273,9 @@ class LCC:
                 num_circuits += 1
 
         return num_circuits
+
+    def get_num_phases(self):
+        '''
+        Determina el numero de fases del LCC según los sets de la estructura del PLS-CADD.
+        '''
+        return len(self.structure.sets)
