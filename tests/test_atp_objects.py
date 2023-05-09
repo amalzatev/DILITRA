@@ -135,6 +135,130 @@ class Test_LCC(unittest.TestCase):
         self.lcc.structure.sets = ['1', '10', '11', '12']
         self.assertEqual(self.lcc.get_num_phases(), 4)
 
+    def test_calculate_horiz(self):
+
+        # Primera prueba
+        self.structure.coordinates = {
+            'x': 99.2666,
+            'y': 212.3338,
+        }
+        self.structure.sets = ['1']
+        self.structure.phases = {
+            '1': ['1', '2'],
+        }
+
+        next_structure = Mock()
+        next_structure.coordinates = {
+            'x': 114.8536,
+            'y': 226.4861,
+        }
+
+        def attachment_points(set_no, phase_no, point):
+            points = {
+                'insulator_attach_point_x': {
+                    '1': {
+                        '1': 101.4344,
+                        '2': 97.0987,
+                    }
+                },
+
+                'insulator_attach_point_y': {
+                    '1': {
+                        '1': 207.8282,
+                        '2': 216.8395,
+                    }
+                },
+            }
+
+            return points.get(point).get(set_no).get(phase_no)
+
+        self.structure.get_attachment_point.side_effect = attachment_points
+        returned = self.lcc.calculate_horiz('1', '2', next_structure)
+        self.assertAlmostEqual(returned, -5.0, 2)
+
+
+        # Segunda prueba
+        self.structure.coordinates = {
+            'x': 42.3054,
+            'y': 187.5299,
+        }
+        self.structure.sets = ['1']
+        self.structure.phases = {
+            '1': ['1', '2'],
+        }
+
+        next_structure = Mock()
+        next_structure.coordinates = {
+            'x': 74.4654,
+            'y': 186.0302,
+        }
+
+        def attachment_points(set_no, phase_no, point):
+            points = {
+                'insulator_attach_point_x': {
+                    '1': {
+                        '1': 39.0936,
+                        '2': 45.5172,
+                    }
+                },
+
+                'insulator_attach_point_y': {
+                    '1': {
+                        '1': 183.6979,
+                        '2': 191.3619,
+                    }
+                },
+            }
+
+            return points.get(point).get(set_no).get(phase_no)
+
+        self.structure.get_attachment_point.side_effect = attachment_points
+        returned = self.lcc.calculate_horiz('1', '1', next_structure)
+        self.assertAlmostEqual(returned, 5.0, 2)
+
+
+        # Tercera prueba
+        self.structure.coordinates = {
+            'x': 177.5917,
+            'y': 204.6696,
+        }
+        self.structure.sets = ['1']
+        self.structure.phases = {
+            '1': ['1', '2'],
+        }
+
+        next_structure = Mock()
+        next_structure.coordinates = {
+            'x': 192.3853,
+            'y': 208.3118,
+        }
+
+        def attachment_points(set_no, phase_no, point):
+            points = {
+                'insulator_attach_point_x': {
+                    '1': {
+                        '1': 184.5651,
+                        '2': 168.8783,
+                    }
+                },
+
+                'insulator_attach_point_y': {
+                    '1': {
+                        '1': 199.9928,
+                        '2': 210.4988,
+                    }
+                },
+            }
+
+            return points.get(point).get(set_no).get(phase_no)
+
+        self.structure.get_attachment_point.side_effect = attachment_points
+        returned = self.lcc.calculate_horiz('1', '2', next_structure)
+        self.assertAlmostEqual(returned, -10.4873, 2)
+
+        returned = self.lcc.calculate_horiz('1', '1', next_structure)
+        self.assertAlmostEqual(returned, 8.3926, 2)
+
 
 if __name__ == '__main__':
     unittest.main()

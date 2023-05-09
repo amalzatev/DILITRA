@@ -2,6 +2,8 @@
 Clases de los objetos usados por ATPDraw
 '''
 
+import numpy as np
+
 import xml.etree.ElementTree as ET
 from plscadd_report import pls_summary
 
@@ -280,3 +282,57 @@ class LCC:
         Determina el numero de fases del LCC según los sets de la estructura del PLS-CADD.
         '''
         return len(self.structure.sets)
+
+    def calculate_horiz(self, set_no, phase_no, next_structure):
+        '''
+        Calcula el valor Horiz para el punto de sujeccion determinado.
+
+        -args:
+            -set_no (str): Nombre del set del punto de sujeccion.
+            -phase_no (str): Nombre de la fase del punto de sujeccion.
+            -next_structure (atp_objects.PLS_structure): Estructura en la cual muere el vano.
+
+        -return:
+            (float): Coordenada del punto de sujecion con respecto al centro de la estructura.
+        '''
+
+        # Coordenadas con origen en el centro de la estructura
+        point_coordinates = np.array(
+            [
+                self.structure.get_attachment_point(
+                    set_no,
+                    phase_no,
+                    point = 'insulator_attach_point_x',
+                ) - self.structure.coordinates.get('x'),
+                self.structure.get_attachment_point(
+                    set_no,
+                    phase_no,
+                    point = 'insulator_attach_point_y',
+                ) - self.structure.coordinates.get('y'),
+            ]
+        )
+
+        center_next_structure = np.array(
+            [
+                next_structure.coordinates.get('x') - self.structure.coordinates.get('x'),
+                next_structure.coordinates.get('y') - self.structure.coordinates.get('y'),
+            ]
+        )
+
+        # Se rota el eje en direccion a la siguiente estructura
+        # El eje y queda en direccion a a siguiente estructura
+        theta = np.arctan2(center_next_structure[1], center_next_structure[0]) - np.pi/2
+        rotation_matrix = np.array(
+            [
+                [np.cos(theta), np.sin(theta)],
+                [-np.sin(theta), np.cos(theta)],
+            ]
+        )
+        point_coordinates = np.dot(rotation_matrix, point_coordinates)
+
+        if point_coordinates[0] > 0:
+            mult = 1
+        else:
+            mult = -1
+
+        return mult * np.sqrt(point_coordinates[0]**2 + point_coordinates[1]**2)
