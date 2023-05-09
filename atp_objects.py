@@ -15,6 +15,7 @@ class PLS_structure:
         -coordinates (dict): Diccionario con las coordenadas en x, y, z del centro de la estrcutura en metros.
         -ahead_span (float): Vano adelante de la estructura.
         -sets (list): Lista con cada uno de los sets de la estructura.
+        -phases (dict): Diccionario cuyas llaves son los sets de la estructura y sus valores son una lista con las fases de cada uno de los sets.
 
     Metodos:
         get_structure_sets: Identifica el conjunto de sets de la estrucutra.
