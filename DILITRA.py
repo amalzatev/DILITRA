@@ -49,11 +49,7 @@ def main():
 
     structures = create_structures(pls_summary)
     alignment = Alignment(structures)
-    lcc = create_lcc(structures, alignment)
-
-    for lcc_i in lcc:
-        print(lcc_i.id, type(lcc_i.phases_info))
-        print(lcc_i.phases_info)
+    lcc_list = create_lcc(structures, alignment)
 
 
 

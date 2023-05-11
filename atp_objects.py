@@ -3,6 +3,7 @@ Clases de los objetos usados por ATPDraw
 '''
 
 import pandas as pd
+import numpy as np
 
 import xml.etree.ElementTree as ET
 from plscadd_report import pls_summary
@@ -253,6 +254,7 @@ class LCC:
         -get_num_circuits: Determina el numero de circuitos del LCC según los sets de la estructura del PLS-CADD.
         -get_num_phases: Determina el numero de fases del LCC según los sets de la estructura del PLS-CADD.
         -create_phases: Crea una tabla (DataFrame) con las fases del LCC. Solo lista el set y lafase a la que corresponden y su tipo. No corresponde a informacion util para ATPDraw.
+        -define_geometry: Calcula la posicion geometrica de cada fase con respecto al cntro de la estrucutra. Agrega los campos de 'Horiz' y 'Vtower' a phases.info.
     '''
 
     def __init__(self, id, length, frequency, grnd_resist, structure, alignment):
@@ -264,7 +266,7 @@ class LCC:
         self.num_circuits = self.get_num_circuits()
         self.phases_info = self.create_phases()
 
-        # self.define_geometry(alignment)
+        self.define_geometry(alignment)
 
 
     def get_num_circuits(self):
@@ -310,8 +312,35 @@ class LCC:
         phase_info.reset_index(drop=True, inplace=True)
         return phase_info
 
+    def define_geometry(self, alignment):
+        '''
+        Calcula la posicion geometrica de cada fase con respecto al cntro de la estrucutra. Agrega los campos de 'Horiz' y 'Vtower' a phases.info.
 
-    # def define_geometry(self, alignment):
-    #     for key, value in self.structure.phases.items():
+        args:
+            -alignment (alignment.Alignment): Instancia del alineamiento de la linea.
+            '''
+
+        horiz = []
+        v_tower = []
+        for row in self.phases_info.itertuples():
+            set_i = str(getattr(row, 'set'))
+            phase_i = str(getattr(row, 'phase'))
+
+            point_x = self.structure.get_attachment_point(set_i, phase_i, 'insulator_attach_point_x')
+            point_y = self.structure.get_attachment_point(set_i, phase_i, 'insulator_attach_point_y')
+            point = np.array([point_x, point_y])
+
+            point = alignment.align_point(point, self.structure.name)
+
+            mult = 1
+            if point[0] < 0:
+                mult = -1
+            horiz.append(mult * np.sqrt(point[0]**2 + point[1]**2))
 
 
+            point_z = self.structure.get_attachment_point(set_i, phase_i, 'insulator_attach_point_z')
+
+            v_tower.append(point_z - self.structure.coordinates.get('z'))
+
+        self.phases_info['Horiz'] = horiz
+        self.phases_info['Vtower'] = v_tower
