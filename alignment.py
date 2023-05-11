@@ -19,7 +19,7 @@ class Alignment:
                     structure.coordinates.get('y'),
                 ]
             )
-                
+
         return nodes
     
     def is_the_last_node(self, node_name):
@@ -48,17 +48,17 @@ class Alignment:
             -point (numpy.ndarray): Coordenadas transformadas del punto.
         '''
 
-        origin = self.nodes.get(node)
+        origin = self.nodes.get(node).copy()
 
         nodes_names = list(self.nodes.keys())
-        index = nodes_names.index(node)        
+        index = nodes_names.index(node)
         if self.is_the_last_node(node):
             ref_structure_index = index - 1
         else:
             ref_structure_index = index + 1
-        
+
         ref_strucutre_name = nodes_names[ref_structure_index]
-        ref_strucutre_point = self.nodes.get(ref_strucutre_name)
+        ref_strucutre_point = self.nodes.get(ref_strucutre_name).copy()
 
         # Se trasladan los ejes
         point -= origin
@@ -66,7 +66,7 @@ class Alignment:
 
         # Se rotan los ejes
         theta = np.arctan2(ref_strucutre_point[1], ref_strucutre_point[0]) - np.pi / 2
-        
+
         rotation_matrix = np.array(
             [
                 [np.cos(theta), np.sin(theta)],
@@ -78,5 +78,5 @@ class Alignment:
 
         if self.is_the_last_node(node):
             point[0] = point[0] * -1
-        
+
         return point
