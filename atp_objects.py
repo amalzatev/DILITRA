@@ -2,7 +2,7 @@
 Clases de los objetos usados por ATPDraw
 '''
 
-import numpy as np
+import pandas as pd
 
 import xml.etree.ElementTree as ET
 from plscadd_report import pls_summary
@@ -247,20 +247,25 @@ class LCC:
         -frequency(float): Frecuencia industrial del sistema en Hz.
         -grnd_resist(float): Resistividad del terreno en Ohm-m.
         -structure(atp_objects.PLS_structure): Estructura de la cual nace el vano.
+        -phase_info (pandas.core.frame.DataFrame): Tabla con el listado de las fases del LCC.
 
     Metodos:
         -get_num_circuits: Determina el numero de circuitos del LCC según los sets de la estructura del PLS-CADD.
         -get_num_phases: Determina el numero de fases del LCC según los sets de la estructura del PLS-CADD.
+        -create_phases: Crea una tabla (DataFrame) con las fases del LCC. Solo lista el set y lafase a la que corresponden y su tipo. No corresponde a informacion util para ATPDraw.
     '''
 
-    def __init__(self, id, length, frequency, grnd_resist, structure):
+    def __init__(self, id, length, frequency, grnd_resist, structure, alignment):
         self.id = id
         self.length = length
         self.frequency = frequency
         self.grnd_resist = grnd_resist
         self.structure = structure
-
         self.num_circuits = self.get_num_circuits()
+        self.phases_info = self.create_phases()
+
+        # self.define_geometry(alignment)
+
 
     def get_num_circuits(self):
         '''
@@ -283,56 +288,30 @@ class LCC:
         '''
         return len(self.structure.sets)
 
-    def calculate_horiz(self, set_no, phase_no, next_structure):
+    def create_phases(self):
         '''
-        Calcula el valor Horiz para el punto de sujeccion determinado.
+        Crea una tabla (DataFrame) con las fases del LCC. Solo lista el set y lafase a la que corresponden y su tipo. No corresponde a informacion util para ATPDraw.
 
-        -args:
-            -set_no (str): Nombre del set del punto de sujeccion.
-            -phase_no (str): Nombre de la fase del punto de sujeccion.
-            -next_structure (atp_objects.PLS_structure): Estructura en la cual muere el vano.
-
-        -return:
-            (float): Coordenada del punto de sujecion con respecto al centro de la estructura.
+        return:
+            -phase_info (pandas.core.frame.DataFrame): Tabla con el listado de las fases del LCC.
         '''
 
-        # Coordenadas con origen en el centro de la estructura
-        point_coordinates = np.array(
-            [
-                self.structure.get_attachment_point(
-                    set_no,
-                    phase_no,
-                    point = 'insulator_attach_point_x',
-                ) - self.structure.coordinates.get('x'),
-                self.structure.get_attachment_point(
-                    set_no,
-                    phase_no,
-                    point = 'insulator_attach_point_y',
-                ) - self.structure.coordinates.get('y'),
-            ]
-        )
+        sets = []
+        phases = []
+        for set_i, set_phases in self.structure.phases.items():
+            for phase_i in set_phases:
+                sets.append(set_i)
+                phases.append(phase_i)
 
-        center_next_structure = np.array(
-            [
-                next_structure.coordinates.get('x') - self.structure.coordinates.get('x'),
-                next_structure.coordinates.get('y') - self.structure.coordinates.get('y'),
-            ]
-        )
+        phase_info = pd.DataFrame({'set': sets, 'phase': phases})
+        set_type = {'1': 'ground', '2': 'phase'}
+        phase_info['type'] = phase_info['set'].map(set_type)
+        phase_info.sort_values('type', ascending=False, inplace=True)
+        phase_info.reset_index(drop=True, inplace=True)
+        return phase_info
 
-        # Se rota el eje en direccion a la siguiente estructura
-        # El eje y queda en direccion a a siguiente estructura
-        theta = np.arctan2(center_next_structure[1], center_next_structure[0]) - np.pi/2
-        rotation_matrix = np.array(
-            [
-                [np.cos(theta), np.sin(theta)],
-                [-np.sin(theta), np.cos(theta)],
-            ]
-        )
-        point_coordinates = np.dot(rotation_matrix, point_coordinates)
 
-        if point_coordinates[0] > 0:
-            mult = 1
-        else:
-            mult = -1
+    # def define_geometry(self, alignment):
+    #     for key, value in self.structure.phases.items():
 
-        return mult * np.sqrt(point_coordinates[0]**2 + point_coordinates[1]**2)
+
