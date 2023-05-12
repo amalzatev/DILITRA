@@ -179,13 +179,13 @@ class Resistor:
         x_pos (int): Coordenada en x en el lienzo de ATPDraw.
         y_pos (int): Coordenada en y en el lienzo de ATPDraw.
     '''
-    
-    
+
+
     def __init__(self, resistance, x_pos, y_pos):
         self.resistance = str(resistance)
         self.x_pos = str(x_pos)
         self.y_pos = str(y_pos)
-    
+
     def create_xml_element(self):
         '''
         Genera el objeto ElementTree base de la resistencia.
@@ -267,6 +267,7 @@ class LCC:
         self.phases_info = self.create_phases()
 
         self.define_geometry(alignment)
+        self.define_conductors()
 
 
     def get_num_circuits(self):
@@ -344,3 +345,30 @@ class LCC:
 
         self.phases_info['Horiz'] = horiz
         self.phases_info['Vtower'] = v_tower
+
+    def define_conductors(self):
+
+        '''
+        Agrega los datos relacionados al conductor a los campos de 'Rout', 'Resis', 'React'  a phases.info.
+
+        return:
+            -phase_info (pandas.core.frame.DataFrame): Tabla con el listado de las fases del LCC, la geometria de las estructuras y los datos del conductor'''
+
+        conductors = {"2": {"Rout": 1.265*2, "Resis": 0.0833, "React":0.5169},
+                    "1": {"Rout": 1.165*2, "Resis": 0.0643, "React":0.3369}}
+        
+        Rout = []
+        Resis = []
+        React = []
+
+        for row in self.phases_info.itertuples():
+
+            set_i = str(getattr(row, 'set'))
+            Rout.append(conductors[set_i]["Rout"])
+            Resis.append(conductors[set_i]["Resis"])
+            React.append(conductors[set_i]["React"])
+
+        self.phases_info["Rout"] = Rout
+        self.phases_info["Resis"] = Resis
+        self.phases_info["React"] = React
+
