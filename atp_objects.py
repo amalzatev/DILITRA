@@ -354,21 +354,29 @@ class LCC:
         return:
             -phase_info (pandas.core.frame.DataFrame): Tabla con el listado de las fases del LCC, la geometria de las estructuras y los datos del conductor'''
 
-        conductors = {"2": {"Rout": 1.265*2, "Resis": 0.0833, "React":0.5169},
-                    "1": {"Rout": 1.165*2, "Resis": 0.0643, "React":0.3369}}
-        
+        conductors = {"2": {"Rin":0, "Rout": 1.265*2, "Resis": 0.0833, "Separ": 0, "Alpha":0, "NB":1},
+                    "1": {"Rin":0, "Rout": 1.165*2, "Resis": 0.0643, "Separ": 0, "Alpha":0, "NB":1}}
+                            
+        Rin = []
         Rout = []
         Resis = []
-        React = []
+        Separ = []
+        Alpha = []
+        NB =[]        
 
         for row in self.phases_info.itertuples():
 
             set_i = str(getattr(row, 'set'))
+            Rin.append(conductors[set_i]["Rin"])
             Rout.append(conductors[set_i]["Rout"])
             Resis.append(conductors[set_i]["Resis"])
-            React.append(conductors[set_i]["React"])
+            Separ.append(conductors[set_i]["Separ"])
+            Alpha.append(conductors[set_i]["Alpha"])
+            NB.append(conductors[set_i]["NB"])
 
+        self.phases_info["Rin"] = Rin
         self.phases_info["Rout"] = Rout
         self.phases_info["Resis"] = Resis
-        self.phases_info["React"] = React
-
+        self.phases_info["Separ"] = Separ
+        self.phases_info["Alpha"] = Alpha
+        self.phases_info["NB"] = NB

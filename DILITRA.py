@@ -50,7 +50,7 @@ def main():
     structures = create_structures(pls_summary)
     alignment = Alignment(structures)
     lcc_list = create_lcc(structures, alignment)
-
+    print(lcc_list[1].phases_info)
 
 
 
