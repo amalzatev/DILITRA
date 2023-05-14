@@ -7,6 +7,7 @@ import numpy as np
 
 import xml.etree.ElementTree as ET
 from plscadd_report import pls_summary
+from plscadd_report import pls_SChart
 
 
 class PLS_structure:
@@ -169,6 +170,43 @@ class PLS_structure:
 
         return coordinates
 
+class PLS_conductor:
+    '''
+    Clase para obtener el cable utilizado en cada uno de los vanos
+    '''
+
+    def __init__(self, name):
+        '''
+        Constructor de la clase.
+
+        args:
+            -name (str): Nombre de la estructura en el PLS-CADD.
+        '''
+        self.name = name
+
+    def get_conductor(self, set_no):
+        
+        '''
+        Devuelve el conductor de acuerdo al set para cada uno de los vanos.
+
+        args:
+            -set_no(str): Nombre del set buscado.
+           
+        return:
+            -element[0].text: Nombre del conductor 
+        '''        
+
+        lookup_table = 'stringing_chart_summary'
+
+        # Se busca en el reporte stringing_chart el nombre del conductor que corresponde a la estrucutra
+
+        stringing_chart_summary = pls_SChart.get_table(lookup_table)
+        lookup_path = './' + lookup_table + '/[span_from_str="' + self.name + '"]/[span_from_set="' + set_no + '"]/cable_file_name'
+
+        # element es una lista que contiene el nombre del conductor para diferentes condiciones de temperatura
+        element = stringing_chart_summary.findall(lookup_path)
+
+        return element[0].text
 
 class Resistor:
     '''
@@ -257,12 +295,13 @@ class LCC:
         -define_geometry: Calcula la posicion geometrica de cada fase con respecto al cntro de la estrucutra. Agrega los campos de 'Horiz' y 'Vtower' a phases.info.
     '''
 
-    def __init__(self, id, length, frequency, grnd_resist, structure, alignment):
+    def __init__(self, id, length, frequency, grnd_resist, structure, alignment, conductors):
         self.id = id
         self.length = length
         self.frequency = frequency
         self.grnd_resist = grnd_resist
         self.structure = structure
+        self.conductors = conductors
         self.num_circuits = self.get_num_circuits()
         self.phases_info = self.create_phases()
 
@@ -293,7 +332,7 @@ class LCC:
 
     def create_phases(self):
         '''
-        Crea una tabla (DataFrame) con las fases del LCC. Solo lista el set y lafase a la que corresponden y su tipo. No corresponde a informacion util para ATPDraw.
+        Crea una tabla (DataFrame) con las fases del LCC. Solo lista el set y la fase a la que corresponden y su tipo. No corresponde a informacion util para ATPDraw.
 
         return:
             -phase_info (pandas.core.frame.DataFrame): Tabla con el listado de las fases del LCC.
@@ -352,27 +391,33 @@ class LCC:
         Agrega los datos relacionados al conductor a los campos de 'Rout', 'Resis', 'React'  a phases.info.
 
         return:
-            -phase_info (pandas.core.frame.DataFrame): Tabla con el listado de las fases del LCC, la geometria de las estructuras y los datos del conductor'''
+            -phase_info (pandas.core.frame.DataFrame): Tabla con los datos correspondientes al LCC, agregando los datos correspondientes al conductor'''
 
-        conductors = {"2": {"Rin":0, "Rout": 1.265*2, "Resis": 0.0833, "Separ": 0, "Alpha":0, "NB":1},
-                    "1": {"Rin":0, "Rout": 1.165*2, "Resis": 0.0643, "Separ": 0, "Alpha":0, "NB":1}}
+        data_conductors = { "800_kcmil_18-19_acar.wir": { "Rin":0, "Rout": 1.265*2,
+                                                    "Resis": 0.0833, "Separ": 0, 
+                                                    "Alpha":0, "NB":1},
+                            "CC-27-27-472-48F.wir": {"Rin":0, "Rout": 1.165*2, 
+                                            "Resis": 0.0643, "Separ": 0,
+                                            "Alpha":0, "NB":1}}
                             
         Rin = []
         Rout = []
         Resis = []
         Separ = []
         Alpha = []
-        NB =[]        
+        NB =[]
 
         for row in self.phases_info.itertuples():
 
             set_i = str(getattr(row, 'set'))
-            Rin.append(conductors[set_i]["Rin"])
-            Rout.append(conductors[set_i]["Rout"])
-            Resis.append(conductors[set_i]["Resis"])
-            Separ.append(conductors[set_i]["Separ"])
-            Alpha.append(conductors[set_i]["Alpha"])
-            NB.append(conductors[set_i]["NB"])
+            conductor = self.conductors.get_conductor(set_i)
+            
+            Rin.append(data_conductors[conductor]["Rin"])
+            Rout.append(data_conductors[conductor]["Rout"])
+            Resis.append(data_conductors[conductor]["Resis"])
+            Separ.append(data_conductors[conductor]["Separ"])
+            Alpha.append(data_conductors[conductor]["Alpha"])
+            NB.append(data_conductors[conductor]["NB"])
 
         self.phases_info["Rin"] = Rin
         self.phases_info["Rout"] = Rout

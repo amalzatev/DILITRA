@@ -5,6 +5,7 @@ Script principal
 
 from plscadd_report import pls_summary
 from atp_objects import PLS_structure
+from atp_objects import PLS_conductor
 from alignment import Alignment
 from atp_objects import LCC
 
@@ -31,7 +32,9 @@ def create_structures(pls_summary):
 def create_lcc(structures, alignment):
 
     lcc = []
-    for structure in structures:
+    for structure_i in range(len(structures)-1):
+        structure = structures[structure_i]
+
         lcc.append(
             LCC(
                 id = structure.name,
@@ -40,6 +43,7 @@ def create_lcc(structures, alignment):
                 grnd_resist = 100.0,
                 structure = structure,
                 alignment = alignment,
+                conductors = PLS_conductor(structure.name)
             )
         )
 
@@ -50,7 +54,9 @@ def main():
     structures = create_structures(pls_summary)
     alignment = Alignment(structures)
     lcc_list = create_lcc(structures, alignment)
-    print(lcc_list[1].phases_info)
+    for structure_i in range(len(structures)-1):
+
+        print(lcc_list[structure_i].phases_info)
 
 
 
