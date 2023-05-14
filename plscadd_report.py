@@ -39,4 +39,7 @@ class PLS_report:
 
 
 summary_filepath = os.path.join('PLS', 'SM_1x220kV_LasDamas_Portezuelos.xml')
+stringingChart_filepath = os.path.join('PLS', 'SC_LT_1x220kV_LasDamas_Portezuelos.xml')
+
 pls_summary = PLS_report(summary_filepath)
+pls_SChart = PLS_report(stringingChart_filepath)
