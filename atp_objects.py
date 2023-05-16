@@ -8,6 +8,8 @@ import numpy as np
 import xml.etree.ElementTree as ET
 from plscadd_report import pls_summary
 from plscadd_report import pls_SChart
+import os
+from xml.dom import minidom
 
 
 class PLS_structure:
@@ -274,8 +276,7 @@ class Resistor:
                     )
 
         return comp
-
-
+        
 class LCC:
     '''
     Clase para el objetco LCC de ATPDraw.
@@ -309,7 +310,6 @@ class LCC:
 
         self.define_geometry(alignment)
         self.define_conductors()
-
 
     def get_num_circuits(self):
         '''
@@ -428,7 +428,7 @@ class LCC:
         self.phases_info["Alpha"] = Alpha
         self.phases_info["NB"] = NB
 
-    def create_xml_element(self, index, posx, posy):
+    def create_xml_element(self, index, x_pos, y_pos):
 
         '''
         Genera el objeto ElementTree base para el LCC.
@@ -453,8 +453,8 @@ class LCC:
         comp_content = ET.SubElement(   comp,
                                         "comp_content",
                                         attrib={
-                                                "PosX": str(posx),
-                                                "PosY": str(posy),
+                                                "PosX": str(x_pos),
+                                                "PosY": str(y_pos),
                                                 "NumPhases": str(num_phases),
                                                 "Icon": "default",
                                                 },
@@ -601,4 +601,172 @@ class LCC:
                         )
 
 
+        return comp
+
+class Probe:
+    """
+    
+    Esta es una clase para crear los probadores de corriente.
+
+    Atributos:
+        -ang = Angulo del elemento en ATP.
+        -input = Cual es el nombre que se se colocara al punto de entrada del elemento.
+        -output = Cual es el nombre que se se colocara al punto de salida del elemento.
+        -x_pos = posicion del elemento en x en ATP.
+        -y_pos = posicion del elemento en y en ATP.
+    Metodos:
+        -creat_xml_elment: Genera el objeto ElementTree base para el probe.
+
+    """
+    def __init__(self, ang, input, output, x_pos, y_pos):
+
+        self.ang = str(ang)
+        self.input = str(input)
+        self.output = str(output)
+        self.x_pos = str(x_pos)
+        self.y_pos = str(y_pos)
+
+    
+    def create_xml_element(self):
+        
+        '''
+        Genera el objeto ElementTree base para los probadores.
+
+        Return:
+            (xml.etree.ElementTree.Element): Objeto ElementTree.
+        '''
+
+        comp = ET.Element("comp", attrib={"Name": "PROBE_I"})
+
+        comp_content = ET.SubElement(   comp,
+                                        "comp_content", 
+                                        attrib={
+                                                "Angle": self.ang,
+                                                "PosX": self.x_pos,
+                                                "PosY": self.y_pos,
+                                                "Icon": "default"
+                                                }
+                                    )
+        
+        ET.SubElement(  comp_content,
+                        "node",
+                        attrib={
+                                "Name": "IN",
+                                "Value": str(self.input),
+                                "UserNamed": "true",
+                                "Kind": "1",
+                                "PosX": "-20",
+                                "PosY": "0",
+                                "NamePosX": "-4",
+                                "NamePosY": "0",
+                                },
+                    )
+       
+        ET.SubElement(  comp_content,
+                        "node",
+                        attrib={
+                                "Name": "OUT",
+                                "Value": str(self.output),
+                                "UserNamed": "true",
+                                "Kind": "1",
+                                "PosX": "20",
+                                "PosY": "0",
+                                "NamePosX": "4",
+                                "NamePosY": "0",
+                                }
+                    )
+    
+        ET.SubElement(  comp_content,
+                        "node",
+                        attrib={
+                                "Name": "CURR",
+                                "Value": "",
+                                "Disabled": "true",
+                                "Kind": "1",
+                                "PosX": "0",
+                                "PosY": "-10",
+                                "NamePosX": "0",
+                                "NamePosY": "-4",
+                                }
+                    )  
+  
+        for i in [1, 50, 0]:
+
+            ET.SubElement(  comp_content,
+                            "data",
+                            attrib={
+                                    "Name": "", 
+                                    "Value": str(i)
+                                    }
+                        )
+
+        probe = ET.SubElement(  comp,
+                                "probe",
+                                attrib={
+                                        "CaptureSteadyState": "false",
+                                        "OnScreen": "0",
+                                        "ScreenFormat": "0",
+                                        "ScreenShow": "0",
+                                        "CurrNode": "false",
+                                        "FontSize": "0",
+                                        "Precision": "0",
+                                        "TimeOnScreen": "false",
+                                        },
+                            )
+            
+        ET.SubElement(  probe,
+                        "monitor",
+                        attrib={
+                                "Phase": "1"
+                                }
+                    )
+        
+        return comp
+        
+class Conn:
+    
+    """
+    
+    Esta es una clase para crear los probadores de corriente.
+
+    Atributos:
+        -NumPhases = Angulo del elemento en ATP.
+        -x_pos1 = posicion inicial del elemento en x en ATP.
+        -y_pos1 = posicion inicial del elemento en y en ATP.
+        -x_pos2 = posicion final del elemento en x en ATP.
+        -y_pos2 = posicion final del elemento en y en ATP.
+
+    Metodos:
+        -creat_xml_elment: Genera el objeto ElementTree base para los conectores.
+        
+    """
+
+    def __init__(self,NumPhases,x_pos1,y_pos1,x_pos2,y_pos2):
+
+        self.x_pos1 = x_pos1
+        self.y_pos1 = y_pos1
+        self.x_pos2 = x_pos2
+        self.y_pos2 = y_pos2
+        self.NumPhases = NumPhases
+
+    def create_xml_element(self):
+        '''
+        Genera el objeto ElementTree base para los conectores.
+
+        Return:
+            (xml.etree.ElementTree.Element): Objeto ElementTree.
+        '''
+
+        comp = ET.Element("conn")
+
+        ET.SubElement(  comp,
+                        "conn_content",
+                        attrib={
+                                "NumPhases":str(self.NumPhases),
+                                "Pos1X":str(self.x_pos1),
+                                "Pos1Y":str(self.y_pos1),
+                                "Pos2X":str(self.x_pos2),
+                                "Pos2Y":str(self.y_pos2)
+                                }
+                    )
         return comp
