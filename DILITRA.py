@@ -2,12 +2,14 @@
 Script principal
 '''
 
-
+import xml.etree.ElementTree as ET
 from plscadd_report import pls_summary
 from atp_objects import PLS_structure
 from atp_objects import PLS_conductor
 from alignment import Alignment
 from atp_objects import LCC
+import os
+from xml.dom import minidom
 
 def create_structures(pls_summary):
     '''
@@ -54,12 +56,18 @@ def main():
     structures = create_structures(pls_summary)
     alignment = Alignment(structures)
     lcc_list = create_lcc(structures, alignment)
-    for structure_i in range(len(structures)-1):
+    x = lcc_list[20].phases_info
 
-        print(lcc_list[structure_i].phases_info)
+    xmlProject = lcc_list[1].create_xml_element(1,200,200)
 
+    path = os.path.join(os.getcwd(), "ATP/" + "Version1")
 
-
+    strXMLfile = minidom.parseString(ET.tostring(xmlProject)).toprettyxml(
+        indent="   "
+    )
+    doc = open(path + ".xml", "w")
+    doc.write(strXMLfile)
+    doc.close()
 
 
 

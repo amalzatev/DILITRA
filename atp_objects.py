@@ -293,6 +293,8 @@ class LCC:
         -get_num_phases: Determina el numero de fases del LCC según los sets de la estructura del PLS-CADD.
         -create_phases: Crea una tabla (DataFrame) con las fases del LCC. Solo lista el set y lafase a la que corresponden y su tipo. No corresponde a informacion util para ATPDraw.
         -define_geometry: Calcula la posicion geometrica de cada fase con respecto al cntro de la estrucutra. Agrega los campos de 'Horiz' y 'Vtower' a phases.info.
+        -define_comductors: Extrae el tipo de conductor y agrega los datos relacionados al conductor a phases.info
+        -creat_xml_elment: Genera el objeto ElementTree base para el LCC.
     '''
 
     def __init__(self, id, length, frequency, grnd_resist, structure, alignment, conductors):
@@ -425,3 +427,178 @@ class LCC:
         self.phases_info["Separ"] = Separ
         self.phases_info["Alpha"] = Alpha
         self.phases_info["NB"] = NB
+
+    def create_xml_element(self, index, posx, posy):
+
+        '''
+        Genera el objeto ElementTree base para el LCC.
+
+        Atributos:
+            index (float): indice para nombrar los nodos del LCC.
+            x_pos (int): Coordenada en x en el lienzo de ATPDraw.
+            y_pos (int): Coordenada en y en el lienzo de ATPDraw.
+            
+        Return:
+            (xml.etree.ElementTree.Element): Objeto ElementTree.
+        '''
+
+        num_phases = len(self.phases_info.index)
+        circuits = 1 # definir como se obtiene este valor
+        ground = 1 # definir como se obtiene este valor
+        Vano = self.structure.get_ahead_span()
+
+        comp = ET.Element(  "comp",
+                            attrib={"Name":"LCC", "Id": str(index+1)})
+        
+        comp_content = ET.SubElement(   comp,
+                                        "comp_content",
+                                        attrib={
+                                                "PosX": str(posx),
+                                                "PosY": str(posy),
+                                                "NumPhases": str(num_phases),
+                                                "Icon": "default",
+                                                },
+                                    )
+
+        circuit_name = {"0": "A", "1": "B"}
+        DeltaY = -10
+        Kind = 1
+
+        for i in range(circuits):
+
+            ET.SubElement(  comp_content,
+                            "node",
+                            attrib={
+                                "Name": "IN{}-{}".format(3 * i + 1, 3 * (i + 1)),
+                                "Value": str(index+1) + circuit_name[str(i)] + str(1),
+                                "UserNamed": "true",
+                                "NumPhases": "3",
+                                "Kind": str(Kind),
+                                "PosX": "-20",
+                                "PosY": str(DeltaY),
+                                "NamePosX": "-4",
+                                "NamePosY": "-4",
+                            },
+                        )
+        
+            DeltaY += 10
+            Kind += 1
+
+        circuit_Ground = {"0": "G1-", "1": "G2-"}
+        DeltaY = 10
+
+        for i in range(ground):
+
+            ET.SubElement(  comp_content,
+                            "node",
+                            attrib={
+                                "Name": "IN{}".format(num_phases + i),
+                                "Value": str(index+1)+ circuit_Ground[str(i)] + str(1),
+                                "UserNamed": "false",
+                                "Kind": str(Kind),
+                                "PosX": "-20",
+                                "PosY": str(DeltaY),
+                                "NamePosX": "-4",
+                                "NamePosY": "-4",
+                                },
+                            )
+
+            DeltaY += 10
+            Kind += 1
+
+        DeltaY = -10
+        Kind = 1
+
+        for i in range(circuits):
+            ET.SubElement(  comp_content,
+                            "node",
+                            attrib={
+                                "Name": "OUT{}-{}".format(3 * i + 1, 3 * (i + 1)),
+                                "Value": str(index+1)+ circuit_name[str(i)] + str(2),
+                                "UserNamed": "true",
+                                "NumPhases": "3",
+                                "Kind": str(Kind),
+                                "PosX": "-20",
+                                "PosY": str(DeltaY),
+                                "NamePosX": "-4",
+                                "NamePosY": "-4",
+                            },
+                        )
+            
+            DeltaY += 10
+            Kind += 1
+            
+        DeltaY = 10
+
+        for i in range(ground):
+            ET.SubElement(  comp_content,
+                            "node",
+                            attrib={
+                                "Name": "OUT{}".format(num_phases + i),
+                                "Value": str(index+1) + circuit_Ground[str(i)] + str(2),
+                                "UserNamed": "false",
+                                "Kind": str(Kind),
+                                "PosX": "-20",
+                                "PosY": str(DeltaY),
+                                "NamePosX": "-4",
+                                "NamePosY": "-4",
+                            },
+                        )
+            
+            DeltaY += 10
+            Kind += 1
+
+        ET.SubElement(  comp_content,
+                        "data",
+                        attrib={"Name": "Length", "Value": str(Vano)}
+        )
+
+        ET.SubElement(  comp_content,
+                        "data",
+                        attrib={"Name": "Frequency", "Value": str(self.frequency)})
+
+        ET.SubElement(  comp_content,
+                        "data",
+                        attrib={"Name": "Grnd resist", "Value": str(self.grnd_resist)})
+
+        Comp_LCC = ET.SubElement(comp,
+                                    "LCC",
+                                    attrib={
+                                    "NumPhases": str(num_phases),
+                                    "LineCablePipe": "1",
+                                    "ModelType": "1",
+                                    },
+                                    )
+        
+        line_header = ET.SubElement(Comp_LCC,
+                                    "line_header",
+                                    attrib={
+                                    "RealMtrx": "false",
+                                    "SkinEffect": "true",
+                                    "AutoBundle": "true",
+                                    "MetricUnit": "true",
+                                    },
+                                    )
+
+        for index, row in self.phases_info.iterrows():
+
+
+            ET.SubElement(  line_header,
+                            "line",
+                            attrib={
+                            "PhNo":str(index + 1),
+                            "Rin":str(row["Rin"]),
+                            "Rout":str(row["Rout"]),
+                            "Resis":str(row["Resis"]),
+                            "React":str(0.2),
+                            "Horiz":str(row["Horiz"]),
+                            "Vtow":str(row["Vtower"]),
+                            "Vmid":str(row["Vtower"]),
+                            "NB":str(row["NB"]),
+                            "Separ":str(row["Separ"]),
+                            "Alpha":str(row["Alpha"]),
+                            },
+                        )
+
+
+        return comp
