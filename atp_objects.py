@@ -770,3 +770,50 @@ class Conn:
                                 }
                     )
         return comp
+class XMLFILE:
+    
+    def __init__(self, dir, xml_name ):
+
+        self.dir = dir
+        self.xml_name = xml_name
+
+        self.projec_create()
+
+    def projec_create(self):
+
+        self.xml_project = ET.Element("project", attrib = {
+                                                    "Application": "ATPDraw",
+                                                    "Version": "7",
+                                                    "VersionXML": "1"
+                                                    }
+                                )
+
+        ET.SubElement(  self.xml_project,
+                        "header",
+                        attrib = {
+                            "Timestep2":"1E-6",
+                            "Tmax":"0.001",
+                            "XOPT":"0",
+                            "COPT":"0",
+                            "TopLeftX":"4728",
+                            "TopLeftY":"4804",
+                        },
+                    )
+        ET.SubElement(  self.xml_project,
+                        "objects",
+                        attrib = {}
+                    )
+        
+        return self.xml_project
+    
+    def compile_XML(self):
+
+        path = os.path.join(self.dir, self.xml_name)
+
+        self.xml_file = minidom.parseString(ET.tostring(self.xml_project)).toprettyxml(
+            indent="   "
+        )
+
+        doc = open(path + ".xml", "w")
+        doc.write(self.xml_file)
+        doc.close()
