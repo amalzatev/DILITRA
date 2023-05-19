@@ -35,8 +35,7 @@ def create_structures(pls_summary):
 def create_lcc(structures, alignment):
 
     lcc = []
-    for structure_i in range(len(structures)-1):
-        structure = structures[structure_i]
+    for structure in structures[:-1]:
 
         lcc.append(
             LCC(
