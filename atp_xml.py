@@ -1,170 +1,286 @@
 import xml.etree.ElementTree as ET
-from plscadd_report import pls_summary
 from alignment import Alignment
 import atp_objects
 import os
+from xml.dom import minidom
 
-def create_structures(pls_summary):
+class xml_file:
+    
     '''
-    Crea los objetos atp_objects.PLS_estructure.
+    Crea el archivo xml de atp con cada uno de los elementos necesarios para la simulación.
 
-    arg:
+    Atributos:
         -pls_summary (xml.etree.ElementTree.Element): Elemento root del reporte Summary.
 
-    Return:
-        -structures (list): Lista con los objetos atp_objects.PLS_estructure.
+    Metodos:
+        -funcProjecCreate: Crea la configuración inicial del proyecto.
+        -funcCompileXML: Crea el archivo .xml.
+        -add_object: agrega un elemento al xml_project.
+        -create_structures: Crea una lista con los objetos atp_objects.PLS_estructure.
+        -create_lcc: Crea una lista con los objetos atp_objects.LCC.
+        -create_Resistor: Crea una lista con los objetos atp_objects.Resistor.
+        -create_conn: Crea una lista con los objetos atp_objects.Conn.
+        -create_probe: Crea una lista con los objetos atp_objects.Probe.
+        -create_atp: Agrega cada uno de los elementos al archivo .xml
     '''
 
-    structures = []
-    lookup_table = 'structure_coordinates_report'
-    structure_coordinates_table = pls_summary.get_table(lookup_table)
-    lookup_path = './' + lookup_table + '/struct_number'
+    def __init__(self, pls_summary):
 
-    for element in structure_coordinates_table.findall(lookup_path):
-        structures.append(atp_objects.PLS_structure(element.text))
+        '''
+        Constructor de la clase.
 
-    return structures
+        args:
+            -pls_summary (xml.etree.ElementTree.Element): Elemento root del reporte Summary.
 
-def create_lcc(structures, alignment):
-
-    xml_lcc = []
-    for structure in structures[:-1]:
-
-        lcc= atp_objects.LCC(
-                id = structure.name,
-                length = structure.ahead_span / 1000,
-                frequency = 60.0,
-                grnd_resist = 100.0,
-                structure = structure,
-                alignment = alignment,
-                conductors = atp_objects.PLS_conductor(structure.name)
-            )
+        '''
         
-        index = structures.index(structure)
-        x_pos = 200 + (index * 160) % 3200
-        y_pos = 100 + 300* (index// 20)
-        
-        xml_lcc.append(lcc.create_xml_element(structures.index(structure),x_pos,y_pos))
+        self.pls_summary = pls_summary        
+        self.structures = self.create_structures()
+        self.alignment = Alignment(self.structures)
+        self.num_ground = 1
+        self.num_circuits = 1
+        self.funcProjecCreate()
+        self.create_atp()
+
+    def funcProjecCreate(self):
+        '''
+        Crea la configuración inicial del proyecto con configuraciones generales del atp.
+
+        Return:
+            -xml_project (xml.etree.ElementTree.Element): Elemento root del archivo xml.
+
+        '''
+        self.xml_project = ET.Element(  "project",
+                                        attrib={
+                                                "Application": "ATPDraw",
+                                                "Version": "7",
+                                                "VersionXML": "1"
+                                        })
+
+        ET.SubElement(  self.xml_project,
+                        "header",
+                        attrib={
+                                "Timestep2":"1E-6",
+                                "Tmax":"0.001",
+                                "XOPT":"0",
+                                "COPT":"0",
+                                "TopLeftX":"4728",
+                                "TopLeftY":"4804",
+                        },
+                    ),
     
-    return xml_lcc
+        ET.SubElement(  self.xml_project,
+                        "objects",
+                        attrib={})
 
-def create_Resistor(structures):
+    def funcCompileXML(self, strNameXML, strdir):
 
-    xml_resistor = []
+        '''
+        Compila el elemento xml_project para crear el archivo .xml.
 
-    for structure in structures[:-1]:
+        arg: 
+            -strNameXML:carpeta y nombre del archivo .xml
+            -strdir(str): Ruta de la carpeta desde donde se ejecuta el main
 
-        index = structures.index(structure)
+        Return:
+            -doc (.xml): Archivo xml.
+        '''
 
-        num_ground = 1 # definir una función que determine el numero de cables de guardia
-        
+        path = os.path.join(strdir, strNameXML)
 
-        y = 20 if num_ground == 2 else 0
-        x_pos = 120 + (index * 160) % 3200
-        y_pos = 140 + 300 * (index // 20) + y
+        self.strXMLfile = minidom.parseString(ET.tostring(self.xml_project)).toprettyxml(
+            indent="   "
+        )
 
-        resistor= atp_objects.Resistor(
-                index = index,
-                resistance= 20,
-                x_pos=x_pos,
-                y_pos=y_pos
-            )
-                
-        xml_resistor.append(resistor.create_xml_element())
-    
-    return xml_resistor
+        doc = open(path + ".xml", "w")
+        doc.write(self.strXMLfile)
+        doc.close()
 
-def create_conn(structures):
+    def add_object(self, new_object):
+        '''
+        Agrega un elemento al xml_project.
 
-    xml_conn = []
-    num_circuits = 1
+        Return:
+            -xml_project (xml.etree.ElementTree.Element): Elemento root del archivo xml con el nuevo elemento dentro de objects.
 
-    for structure in structures[:-1]:
+        '''
+        objects_tag = self.xml_project.find('objects')
+        objects_tag.append(new_object)
 
-        index = structures.index(structure)
-        y = 0
-        for circuit in range(num_circuits):
+    def create_structures(self):
+        '''
+        Crea los objetos atp_objects.PLS_estructure.
 
-            x_pos = 80 + (index * 160) % 3200
-            y_pos = 80 + 300 * (index // 20) + y
-            x_pos2 = x_pos +  80
-            y_pos2 = y_pos
-            y = 20
+        Return:
+            -structures (list): Lista con los objetos atp_objects.PLS_estructure.
+        '''
 
-            conn = atp_objects.Conn(
-                    NumPhases=3,
-                    x_pos1=x_pos,
-                    y_pos1=y_pos,
-                    x_pos2=x_pos2,
-                    y_pos2=y_pos2,
-            )
-            xml_conn.append(conn.create_xml_element())
-    return xml_conn
+        structures = []
+        lookup_table = 'structure_coordinates_report'
+        structure_coordinates_table = self.pls_summary.get_table(lookup_table)
+        lookup_path = './' + lookup_table + '/struct_number'
 
-def create_probe(structures):
+        for element in structure_coordinates_table.findall(lookup_path):
+            structures.append(atp_objects.PLS_structure(element.text))
 
-    xml_probe = []
-    num_ground = 1
+        return structures
 
-    for structure in structures[:-1]:
+    def create_lcc(self):
 
-        index = structures.index(structure)
-        y = 0
+        '''
+        Crea los objetos atp_objects.LCC.
 
-        for ground in range(num_ground):
+        Return:
+            -xml_lcc (list): Lista con los objetos atp_objects.LCC.
+        '''
+        self.xml_lcc = []
+        for structure in self.structures[:-1]:
 
-            x_pos = 100 + (index * 160) % 3200
-            y_pos = 120 + 300 * (index // 20) + y
-            y = 20
-
-            probe = atp_objects.Probe(
-                                    x_pos=x_pos,
-                                    y_pos=y_pos
-                                    )
+            lcc= atp_objects.LCC(
+                    id = structure.name,
+                    length = structure.ahead_span / 1000,
+                    frequency = 60.0,
+                    grnd_resist = 100.0,
+                    structure = structure,
+                    alignment = self.alignment,
+                    conductors = atp_objects.PLS_conductor(structure.name)
+                )
             
-            xml_probe.append(probe.create_xml_element())
-                        
-            probe = atp_objects.Probe(
-                                    x_pos=x_pos+40,
-                                    y_pos=y_pos
-                                      )
+            index = self.structures.index(structure)
+            x_pos = 200 + (index * 160) % 3200
+            y_pos = 100 + 300* (index// 20)
+            
+            self.xml_lcc.append(lcc.create_xml_element(self.structures.index(structure),x_pos,y_pos))
+        
+        return self.xml_lcc
 
-            xml_probe.append(probe.create_xml_element())
+    def create_Resistor(self):
 
-    return xml_probe
+        '''
+        Crea los objetos atp_objects.Resistor.
+
+        Return:
+            -xml_resistor (list): Lista con los objetos atp_objects.Resistor.
+        '''
+
+        self.xml_resistor = []
+
+        for structure in self.structures[:-1]:
+
+            index = self.structures.index(structure)
+
+            y = 20 if self.num_ground == 2 else 0
+            x_pos = 120 + (index * 160) % 3200
+            y_pos = 140 + 300 * (index // 20) + y
+
+            resistor= atp_objects.Resistor(
+                    index = index,
+                    resistance= 20,
+                    x_pos=x_pos,
+                    y_pos=y_pos
+                )
+                    
+            self.xml_resistor.append(resistor.create_xml_element())
+        
+        return self.xml_resistor
+
+    def create_conn(self):
+        '''
+        Crea los objetos atp_objects.Conn.
+
+        Return:
+            -xml_conn (list): Lista con los objetos atp_objects.Conn.
+        '''
+
+        self.xml_conn = []
+        
+
+        for structure in self.structures[:-1]:
+
+            index = self.structures.index(structure)
+            for circuit in range(self.num_circuits):
+
+                x_pos = 80 + (index * 160) % 3200
+                y_pos = 80 + 300 * (index // 20) + 20*circuit
+                x_pos2 = x_pos +  80
+                y_pos2 = y_pos
+
+                conn = atp_objects.Conn(
+                        NumPhases=3,
+                        x_pos1=x_pos,
+                        y_pos1=y_pos,
+                        x_pos2=x_pos2,
+                        y_pos2=y_pos2,
+                )
+
+                self.xml_conn.append(conn.create_xml_element())
+
+        return self.xml_conn
+
+    def create_probe(self):
+        '''
+        Crea los objetos atp_objects.Probe.
+
+        Return:
+            -xml_probe (list): Lista con los objetos atp_objects.Probe.
+        '''
+
+        self.xml_probe = []
+
+        for structure in self.structures[:-1]:
+
+            index = self.structures.index(structure)
+            
+            for ground in range(self.num_ground):
+
+                x_pos = 100 + (index * 160) % 3200
+                y_pos = 120 + 300 * (index // 20) + 20*ground
+
+                probe = atp_objects.Probe(
+                                        x_pos=x_pos,
+                                        y_pos=y_pos
+                                        )
+                
+                self.xml_probe.append(probe.create_xml_element())
+                            
+                probe = atp_objects.Probe(
+                                        x_pos=x_pos+40,
+                                        y_pos=y_pos
+                                        )
+
+                self.xml_probe.append(probe.create_xml_element())
+
+        return self.xml_probe
+
+    def create_atp(self):
+        '''
+        Itera sobre acada una de las listas para cada componente y los agrega al xml_project.
+
+        '''
+        
+        xml_resistor = self.create_Resistor()
+        xml_lcc = self.create_lcc()
+        xml_conn = self.create_conn()
+        xml_probe = self.create_probe()
+
+        c_circuit = 0
+        c_ground = 0
+
+        for structure in self.structures[:-1]:
+
+            index = self.structures.index(structure)
+            self.add_object(xml_resistor[index])
+            self.add_object(xml_lcc[index])
+
+            for circuit in range(self.num_circuits):
+                self.add_object(xml_conn[c_circuit])
+                c_circuit += 1
+            
+            for ground in range(self.num_ground):
+                for i_probe in range(2):
+
+                    self.add_object(xml_probe[c_ground])
+                    c_ground += 1
 
 
-atp = atp_objects.xml_file()
-atp.funcProjecCreate()
-
-structures = create_structures(pls_summary)
-alignment = Alignment(structures)
-
-xml_lcc = create_lcc(structures, alignment)
-xml_resistor = create_Resistor(structures)
-xml_conn = create_conn(structures)
-xml_probe = create_probe(structures)
-
-c_circuit = 0
-c_ground = 0
-num_circuits = 1
-num_ground = 1
-
-for structure in structures[:-1]:
-
-    index = structures.index(structure)
-    atp.add_object(xml_resistor[index])
-    atp.add_object(xml_lcc[index])
-
-    for circuit in range(num_circuits):
-        atp.add_object(xml_conn[c_circuit])
-        c_circuit += 1
-    
-    for ground in range(num_ground):
-        for i_probe in range(2):
-
-            atp.add_object(xml_probe[c_ground])
-            c_ground += 1
-
-
-atp.funcCompileXML("ATP/" + "Version1",os.getcwd())
+        self.funcCompileXML("ATP/" + "Version1",os.getcwd())
