@@ -221,10 +221,11 @@ class Resistor:
     '''
 
 
-    def __init__(self, resistance, x_pos, y_pos):
+    def __init__(self, index, resistance, x_pos, y_pos):
         self.resistance = str(resistance)
         self.x_pos = str(x_pos)
         self.y_pos = str(y_pos)
+        self.index = str(index + 1)
 
     def create_xml_element(self):
         '''
@@ -241,8 +242,10 @@ class Resistor:
         comp_content = ET.SubElement(   comp,
                                         'comp_content',
                                         attrib={
+                                                "Angle": str(270),
                                                 'PosX': self.x_pos,
                                                 'PosY': self.y_pos,
+                                                "Output": "1",
                                                 'Icon': "default",
                                                 },
                                     )
@@ -250,20 +253,27 @@ class Resistor:
         ET.SubElement(  comp_content, 'node',
                         attrib={
                                 'Name': 'From',
-                                'Value': '',
+                                'Value': self.index + "RPT",
+                                "UserNamed": "true",
                                 'Kind': '1',
                                 'PosX': '-20',
                                 'PosY': '0',
+                                "NamePosX": "-4",
+                                "NamePosY": "0",
                                 },
                     )
 
         ET.SubElement(  comp_content, 'node',
                         attrib={
-                                'Name': 'To',
-                                'Value': '',
-                                'Kind': '1',
-                                'PosX': '20',
-                                'PosY': '0',
+                                "Name": "To",
+                                "Value": "      ",
+                                "UserNamed": "true",
+                                "Kind": "1",
+                                "PosX": "20",
+                                "PosY": "0",
+                                "NamePosX": "4",
+                                "NamePosY": "0",
+                                "Ground": "1",
                                 },
                     )
 
@@ -457,6 +467,8 @@ class LCC:
                                                 "PosY": str(y_pos),
                                                 "NumPhases": str(num_phases),
                                                 "Icon": "default",
+                                                "ScaleIconX": "2",
+                                                 "ScaleIconY":"2"
                                                 },
                                     )
 
@@ -618,11 +630,10 @@ class Probe:
         -creat_xml_elment: Genera el objeto ElementTree base para el probe.
 
     """
-    def __init__(self, ang, input, output, x_pos, y_pos):
+    def __init__(self, x_pos, y_pos):
 
-        self.ang = str(ang)
-        self.input = str(input)
-        self.output = str(output)
+        self.input = str("R")
+        self.output = str("G")
         self.x_pos = str(x_pos)
         self.y_pos = str(y_pos)
 
@@ -641,7 +652,6 @@ class Probe:
         comp_content = ET.SubElement(   comp,
                                         "comp_content", 
                                         attrib={
-                                                "Angle": self.ang,
                                                 "PosX": self.x_pos,
                                                 "PosY": self.y_pos,
                                                 "Icon": "default"
@@ -770,50 +780,48 @@ class Conn:
                                 }
                     )
         return comp
-class XMLFILE:
+
+class xml_file:
+    floatTimeStep = float()
+    floatTmax = float()
+    intXOPT = int()
+    intCOPT = int()
+    dictHeater = dict()
+    strXMLfile = str()
+
+    def funcProjecCreate(self):
+        self.xml_project = ET.Element("project")
+        self.xml_project.set("Application", "ATPDraw")
+        self.xml_project.set("Version", "7")
+        self.xml_project.set("VersionXML", "1")
+        ET.SubElement(self.xml_project,
+            "header",
+            attrib={
+                "Timestep2":"1E-6",
+                "Tmax":"0.001",
+                "XOPT":"0",
+                "COPT":"0",
+                "TopLeftX":"4728",
+                "TopLeftY":"4804",
+            },
+        ),
     
-    def __init__(self, dir, xml_name ):
+        self.objects = ET.SubElement(self.xml_project,
+                                    "objects",
+                                    attrib={})
 
-        self.dir = dir
-        self.xml_name = xml_name
+    def funcCompileXML(self, strNameXML, strdir):
 
-        self.projec_create()
+        path = os.path.join(strdir, strNameXML)
 
-    def projec_create(self):
-
-        self.xml_project = ET.Element("project", attrib = {
-                                                    "Application": "ATPDraw",
-                                                    "Version": "7",
-                                                    "VersionXML": "1"
-                                                    }
-                                )
-
-        ET.SubElement(  self.xml_project,
-                        "header",
-                        attrib = {
-                            "Timestep2":"1E-6",
-                            "Tmax":"0.001",
-                            "XOPT":"0",
-                            "COPT":"0",
-                            "TopLeftX":"4728",
-                            "TopLeftY":"4804",
-                        },
-                    )
-        ET.SubElement(  self.xml_project,
-                        "objects",
-                        attrib = {}
-                    )
-        
-        return self.xml_project
-    
-    def compile_XML(self):
-
-        path = os.path.join(self.dir, self.xml_name)
-
-        self.xml_file = minidom.parseString(ET.tostring(self.xml_project)).toprettyxml(
+        self.strXMLfile = minidom.parseString(ET.tostring(self.xml_project)).toprettyxml(
             indent="   "
         )
-
         doc = open(path + ".xml", "w")
-        doc.write(self.xml_file)
+        doc.write(self.strXMLfile)
         doc.close()
+
+    def add_object(self, new_object):
+
+        objects_tag = self.xml_project.find('objects')
+        objects_tag.append(new_object)

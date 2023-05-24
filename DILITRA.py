@@ -8,9 +8,7 @@ from atp_objects import PLS_structure
 from atp_objects import PLS_conductor
 from alignment import Alignment
 from atp_objects import LCC
-from atp_objects import XMLFILE
-import os
-from xml.dom import minidom
+from atp_xml import xml_file
 
 def create_structures(pls_summary):
     '''
@@ -56,20 +54,10 @@ def main():
     structures = create_structures(pls_summary)
     alignment = Alignment(structures)
     lcc_list = create_lcc(structures, alignment)
-    x = lcc_list[20].phases_info
-    print(x)
+    atp = xml_file(pls_summary=pls_summary,alignment=alignment)
+    atp.create_atp
 
-    xmlProject = lcc_list[1].create_xml_element(1,200,200)
 
-    path = os.path.join(os.getcwd(), "ATP/" + "Version1")
-
-    xml_file = minidom.parseString(ET.tostring(xmlProject)).toprettyxml(
-        indent="   "
-    )
-
-    doc = open(path + ".xml", "w")
-    doc.write(xml_file)
-    doc.close()
     
 
 if __name__ == '__main__':
